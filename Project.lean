@@ -1,6 +1,6 @@
 import Project.Example
 
-def MyDef (n : Nat) : Nat := n + 1
+def myDef (n : Nat) : Nat := n + 1
 
 theorem my_theorem1 : 1 = 1 := rfl
 
