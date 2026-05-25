@@ -1,5 +1,5 @@
 # Fdb version 4
-["pdflatex"] 1779743911.54116 "print.tex" "print.pdf" "print" 1779743912.24026 0
+["pdflatex"] 1779744018.35188 "print.tex" "print.pdf" "print" 1779744019.07908 0
   "/usr/local/texlive/2025/texmf-dist/fonts/map/fontname/texfonts.map" 1577235249 3524 cb3e574dea2d1052e39280babc910dc8 ""
   "/usr/local/texlive/2025/texmf-dist/fonts/tfm/adobe/zapfding/pzdr.tfm" 1136768653 1528 f853c4d1b4e0550255e02831fdc8496f ""
   "/usr/local/texlive/2025/texmf-dist/fonts/tfm/public/amsfonts/symbols/msam10.tfm" 1246382020 916 f87d7c45f9c908e672703b83b72241a3 ""
@@ -82,9 +82,9 @@
   "content.tex" 1779743639.60623 363 d68ec385ab7b5b65ef8d18eff416b83d ""
   "macros/common.tex" 1779743639.60876 820 60fafcc3aa944a5e60030581a943ef6b ""
   "macros/print.tex" 1779743639.60938 1101 87627b2ec24fef68edc71c13f43f7bab ""
-  "print.aux" 1779743912.02664 244 e4a573deebbdfd8899049e9f0ac7765f "pdflatex"
-  "print.out" 1779743911.84933 0 d41d8cd98f00b204e9800998ecf8427e "pdflatex"
-  "print.tex" 1779743910.64138 1447 862e5a3c54ddf57a7d29ddd18710c09b ""
+  "print.aux" 1779744018.86629 244 e4a573deebbdfd8899049e9f0ac7765f "pdflatex"
+  "print.out" 1779744018.66917 0 d41d8cd98f00b204e9800998ecf8427e "pdflatex"
+  "print.tex" 1779744018.18158 1445 75b3d4ac038ffcb061e542936c28b50c ""
   (generated)
   "print.aux"
   "print.log"
