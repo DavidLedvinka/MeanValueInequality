@@ -7,3 +7,5 @@ theorem my_theorem1 : 1 = 1 := rfl
 theorem my_theorem2 : 1 = 1 := rfl
 
 theorem my_theorem3 : 1 = 1 := rfl
+
+theorem my_theorem4 : 1 =1 := rfl
