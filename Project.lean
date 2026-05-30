@@ -2,7 +2,7 @@ import Mathlib
 
 section polygonal_line
 
-variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] (a b : E)
+variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] (a b c: E)
 open Set
 
 --/-- A line segment in a vector space E can be written as the sum of a linear map and a constant.-/
@@ -28,7 +28,7 @@ open Set
 
 /--A path is piecewise affine if it can be divided into pieces of affine maps.-/
 structure IsPiecewiseAffine (ϕ : Path a b) : Prop where
-  piecewise_affine : ∃ (n : ℕ) (ι : Fin (n + 1) → unitInterval), ι 0 = 0 → ι (Fin.last n) = 1 → ∀ i : Fin n, ∃ (l : Fin n → ℝ →ᵃ[ℝ] E), ∀ x ∈ Set.Icc (ι (Fin.castLE (show n ≤ n + 1 from by linarith) i)) (ι (Fin.castSucc i)), ϕ x = (l i) x
+  piecewise_affine : ∃ (n : ℕ) (ι : Fin (n + 1) → unitInterval), ι 0 = 0 → ι (Fin.last n) = 1 → ∃ l : Fin n → ℝ →ᵃ[ℝ] E, ∀ i : Fin n, ∀ x ∈ Set.Icc (ι (Fin.castLE (show n ≤ n + 1 from by linarith) i)) (ι (Fin.castSucc i)), ϕ x = (l i) x
 
 /--A polygonal line is a path that is piecewise affine.-/
 structure PolygonalLine (a b : E) extends Path a b where
@@ -50,6 +50,29 @@ def constant_polygonal_line (x : E) : PolygonalLine x x := by
   intros; dsimp
   use fun _ ↦ AffineMap.const ℝ ℝ x; intros; rfl
 
+def line_segment (x y : E) : PolygonalLine x y := by
+  constructor
+  show Path x y
+  have : Continuous (fun t : unitInterval ↦ t.1 • y + (1 - t.1) • x) := by
+    refine Continuous.add ?_ ? _
+    exact continuous_subtype_val.smul continuous_const
+    exact (continuous_const.sub continuous_subtype_val).smul continuous_const
+  use ⟨fun ⟨t, _⟩ ↦ t • y + (1 - t) • x, this⟩ <;> dsimp; simp
+  simp
+  dsimp; use 1, Fin.cases 0 (fun _ ↦ 1)
+  dsimp; intros
+  use fun _ ↦ (AffineMap.lineMap x y); intros
+  rw [AffineMap.lineMap]; dsimp; rw [smul_sub, sub_smul, one_smul, add_sub, ← add_sub_right_comm]
+
+lemma segment_range_eq_segment (x y : E) : Set.range (line_segment x y) = segment ℝ x y := by
+  ext; simp [segment, line_segment]
+  constructor; rintro ⟨a, ⟨⟨a0, a1⟩, sum_eq⟩⟩; use (1 - a), by linarith, a, a0, by ring_nf
+  rw [← sum_eq]; simp [add_comm]
+  rintro ⟨a, ⟨a0, ⟨b, ⟨b0, ⟨sum, sum_eq⟩⟩⟩⟩⟩; use b
+  constructor; constructor; exact b0; linarith
+  rw [← sum_eq, add_comm]; simp [← sum]
+
+
 lemma polygonal_connected_of_connected (U : Set E) (Uopen : IsOpen U)  :
   IsConnected U → ∀ x y : E, x ∈ U → y ∈ U → ∃ ϕ : PolygonalLine x y, Set.range ϕ ⊆ U := by
   intro Uconnected x y xu yu
@@ -68,7 +91,33 @@ lemma polygonal_connected_of_connected (U : Set E) (Uopen : IsOpen U)  :
   have V'nonempty : V' ≠ ∅ := by
     rw [V'_eq_V ⟨x, xu⟩] at this
     contrapose! this; rw [this]; exact notMem_empty _
-  have V'clopen : IsClopen V' := sorry
+  have V'clopen : IsClopen V' := by
+    constructor
+    · apply closure_subset_iff_isClosed.mp
+      rintro ⟨a, au⟩ aV'
+      have aV : a ∈ closure V := by
+        apply map_mem_closure continuous_subtype_val aV'
+        rintro v vv
+        apply (V'_eq_V v).mpr; assumption
+      apply (V'_eq_V ⟨a, au⟩).mp
+      rw [V_def]; dsimp; constructor; exact au
+      have ball : ∃ ε > 0, Metric.ball a ε ⊆ U := Metric.isOpen_iff.mp Uopen a au
+      rcases ball with ⟨ε, ⟨εpos, ball⟩⟩
+      have : ((Metric.ball a ε) ∩ V).Nonempty := mem_closure_iff.mp aV (Metric.ball a ε) Metric.isOpen_ball (Metric.mem_ball_self εpos)
+      rw [Set.nonempty_def] at this
+      rcases this with ⟨b, ⟨binball, bV⟩⟩
+      have polygonalpath₁ : ∃ ϕ₁ : PolygonalLine x b, Set.range ϕ₁ ⊆ U := by rw [V_def] at bV; dsimp at bV; exact bV.2
+      have polygonalpath₂ : ∃ ϕ₂ : PolygonalLine b a, Set.range ϕ₂ ⊆ U := by
+        use line_segment b a
+        rw [segment_range_eq_segment b a]
+        apply subset_trans (convex_iff_segment_subset.mp (convex_ball a ε) binball (Metric.mem_ball_self εpos)) ball
+      rcases polygonalpath₁ with ⟨ϕ₁, hϕ₁⟩
+      rcases polygonalpath₂ with ⟨ϕ₂, hϕ₂⟩
+      sorry
+    apply IsOpen.preimage continuous_subtype_val
+    apply Metric.isOpen_iff.mpr
+    rintro a aV
+    sorry
   have : V' = Set.univ := by
     rcases ((connectedSpace_iff_clopen.mp Uconnected).2 V' V'clopen)
     · contradiction
