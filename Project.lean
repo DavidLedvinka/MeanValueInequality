@@ -3,7 +3,8 @@ import Mathlib
 section polygonal_line
 
 variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] (a b c: E)
-open Set
+
+open Set unitInterval
 
 --/-- A line segment in a vector space E can be written as the sum of a linear map and a constant.-/
 --@[ext]
@@ -41,14 +42,11 @@ instance : CoeFun (PolygonalLine a b) fun _ ↦ unitInterval → E where
 #check IsConnected.isPreconnected
 #check connectedSpace_iff_clopen
 
-def constant_polygonal_line (x : E) : PolygonalLine x x := by
-  constructor
-  show Path x x
-  use (ContinuousMap.const unitInterval x) <;> dsimp
-  constructor
-  use 1, Fin.cases 0 (fun _ ↦ 1)
-  intros; dsimp
-  use fun _ ↦ AffineMap.const ℝ ℝ x; intros; rfl
+def constantPolygonalLine (x : E) : PolygonalLine x x where
+  toFun _ := x
+  source' := rfl
+  target' := rfl
+  piecewise_affine := sorry
 
 def line_segment (x y : E) : PolygonalLine x y := by
   constructor
