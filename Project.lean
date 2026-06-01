@@ -2,8 +2,8 @@ import Mathlib
 
 section polygonal_line
 
-variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] (a b c: E)
-open Set
+variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] (a b: E)
+open Set unitInterval
 
 --/-- A line segment in a vector space E can be written as the sum of a linear map and a constant.-/
 --@[ext]
@@ -28,49 +28,52 @@ open Set
 
 /--A path is piecewise affine if it can be divided into pieces of affine maps.-/
 structure IsPiecewiseAffine (ϕ : Path a b) : Prop where
-  piecewise_affine : ∃ (n : ℕ) (ι : Fin (n + 1) → unitInterval), ι 0 = 0 → ι (Fin.last n) = 1 → ∃ l : Fin n → ℝ →ᵃ[ℝ] E, ∀ i : Fin n, ∀ x ∈ Set.Icc (ι (Fin.castLE (show n ≤ n + 1 from by linarith) i)) (ι (Fin.castSucc i)), ϕ x = (l i) x
+  piecewise_affine : ∃ (n : ℕ) (ι : Fin (n + 1) → I), ι 0 = 0 → ι (Fin.last n) = 1 → ∃ l : Fin n → ℝ →ᵃ[ℝ] E, ∀ i : Fin n, ∀ x ∈ Set.Icc (ι (Fin.castLE (show n ≤ n + 1 from by linarith) i)) (ι (Fin.castSucc i)), ϕ x = (l i) x
 
 /--A polygonal line is a path that is piecewise affine.-/
+@[ext]
 structure PolygonalLine (a b : E) extends Path a b where
   piecewise_affine : IsPiecewiseAffine a b toPath
 
 /--A polygonal line behaves like a path, which is a function from the unit interval to the vector space E.-/
-instance : CoeFun (PolygonalLine a b) fun _ ↦ unitInterval → E where
+instance : FunLike (PolygonalLine a b)  I  E where
   coe := fun ϕ ↦ ϕ.toPath.toFun
+  coe_injective' ϕ₁ ϕ₂ h := by
+    dsimp at h; ext x
+    simp only [DFunLike.coe_fn_eq] at h
+    cases ϕ₁; cases ϕ₂; congr
 
 #check IsConnected.isPreconnected
 #check connectedSpace_iff_clopen
 
-def constant_polygonal_line (x : E) : PolygonalLine x x := by
-  constructor
-  show Path x x
-  use (ContinuousMap.const unitInterval x) <;> dsimp
-  constructor
-  use 1, Fin.cases 0 (fun _ ↦ 1)
-  intros; dsimp
-  use fun _ ↦ AffineMap.const ℝ ℝ x; intros; rfl
+def constantPolygonalLine (x : E) : PolygonalLine x x where
+  toFun := fun _ ↦ x
+  source' := rfl
+  target' := rfl
+  piecewise_affine := by
+    use 1, Fin.cases 0 (fun _ ↦ 1); dsimp; intros
+    use fun _ ↦ AffineMap.const ℝ ℝ x; intros; dsimp
 
-def line_segment (x y : E) : PolygonalLine x y := by
-  constructor
-  show Path x y
-  have : Continuous (fun t : unitInterval ↦ t.1 • y + (1 - t.1) • x) := by
-    refine Continuous.add ?_ ? _
-    exact continuous_subtype_val.smul continuous_const
-    exact (continuous_const.sub continuous_subtype_val).smul continuous_const
-  use ⟨fun ⟨t, _⟩ ↦ t • y + (1 - t) • x, this⟩ <;> dsimp; simp
-  simp
-  dsimp; use 1, Fin.cases 0 (fun _ ↦ 1)
-  dsimp; intros
-  use fun _ ↦ (AffineMap.lineMap x y); intros
-  rw [AffineMap.lineMap]; dsimp; rw [smul_sub, sub_smul, one_smul, add_sub, ← add_sub_right_comm]
+def lineSegment (x y : E) : PolygonalLine x y where
+  toFun := fun ⟨t, _⟩ ↦ t • y + (1 - t) • x
+  source' := by simp
+  target' := by simp
+  piecewise_affine := by
+    use 1, Fin.cases 0 (fun _ ↦ 1)
+    dsimp; intros
+    use fun _ ↦ (AffineMap.lineMap x y); intros
+    rw [AffineMap.lineMap]; dsimp; rw [smul_sub, sub_smul, one_smul, add_sub, ← add_sub_right_comm]
 
-lemma segment_range_eq_segment (x y : E) : Set.range (line_segment x y) = segment ℝ x y := by
-  ext; simp [segment, line_segment]
+lemma segment_range_eq_segment (x y : E) : Set.range (lineSegment x y) = segment ℝ x y := by
+  ext; simp [segment, lineSegment]
   constructor; rintro ⟨a, ⟨⟨a0, a1⟩, sum_eq⟩⟩; use (1 - a), by linarith, a, a0, by ring_nf
-  rw [← sum_eq]; simp [add_comm]
-  rintro ⟨a, ⟨a0, ⟨b, ⟨b0, ⟨sum, sum_eq⟩⟩⟩⟩⟩; use b
-  constructor; constructor; exact b0; linarith
-  rw [← sum_eq, add_comm]; simp [← sum]
+  rw [← sum_eq]; simp [add_comm]; rfl
+  rintro ⟨b, ⟨bpos, ⟨a, ⟨apos, ⟨sum_eq_1, sum_eq⟩⟩⟩⟩⟩
+  apply eq_sub_of_add_eq at sum_eq_1
+  have : 0 ≤ 1 - a := by
+    rw [sum_eq_1] at bpos; exact bpos
+  use a, ⟨apos, by linarith [bpos]⟩
+  rw [← sum_eq]; rw [add_comm (b • x)]; simp [sum_eq_1]; rfl
 
 
 lemma polygonal_connected_of_connected (U : Set E) (Uopen : IsOpen U)  :
@@ -85,8 +88,10 @@ lemma polygonal_connected_of_connected (U : Set E) (Uopen : IsOpen U)  :
   have : x ∈ V := by
     simp [V_def]
     constructor; exact xu
-    use constant_polygonal_line x
-    simp [constant_polygonal_line, Set.range]; assumption
+    use constantPolygonalLine x
+    dsimp [constantPolygonalLine, Set.range]
+    rintro a ⟨_, h⟩;
+    change x = a at h; rwa [← h]
   -- have Vnonempty : Nonempty V := by simp; use x
   have V'nonempty : V' ≠ ∅ := by
     rw [V'_eq_V ⟨x, xu⟩] at this
@@ -108,7 +113,7 @@ lemma polygonal_connected_of_connected (U : Set E) (Uopen : IsOpen U)  :
       rcases this with ⟨b, ⟨binball, bV⟩⟩
       have polygonalpath₁ : ∃ ϕ₁ : PolygonalLine x b, Set.range ϕ₁ ⊆ U := by rw [V_def] at bV; dsimp at bV; exact bV.2
       have polygonalpath₂ : ∃ ϕ₂ : PolygonalLine b a, Set.range ϕ₂ ⊆ U := by
-        use line_segment b a
+        use lineSegment b a
         rw [segment_range_eq_segment b a]
         apply subset_trans (convex_iff_segment_subset.mp (convex_ball a ε) binball (Metric.mem_ball_self εpos)) ball
       rcases polygonalpath₁ with ⟨ϕ₁, hϕ₁⟩
