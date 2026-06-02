@@ -27,13 +27,13 @@ open Set unitInterval
 #check AffineMap
 
 /--A path is piecewise affine if it can be divided into pieces of affine maps.-/
-structure IsPiecewiseAffine (ϕ : Path a b) : Prop where
+structure IsPiecewiseAffine {a b : E} (ϕ : Path a b) : Prop where
   piecewise_affine : ∃ (n : ℕ) (ι : Fin (n + 1) → I), ι 0 = 0 → ι (Fin.last n) = 1 → ∃ l : Fin n → ℝ →ᵃ[ℝ] E, ∀ i : Fin n, ∀ x ∈ Set.Icc (ι (Fin.castLE (show n ≤ n + 1 from by linarith) i)) (ι (Fin.castSucc i)), ϕ x = (l i) x
 
 /--A polygonal line is a path that is piecewise affine.-/
 @[ext]
 structure PolygonalLine (a b : E) extends Path a b where
-  piecewise_affine : IsPiecewiseAffine a b toPath
+  piecewise_affine : IsPiecewiseAffine toPath
 
 /--A polygonal line behaves like a path, which is a function from the unit interval to the vector space E.-/
 instance : FunLike (PolygonalLine a b)  I  E where
@@ -75,6 +75,36 @@ lemma segment_range_eq_segment (x y : E) : Set.range (lineSegment x y) = segment
   use a, ⟨apos, by linarith [bpos]⟩
   rw [← sum_eq]; rw [add_comm (b • x)]; simp [sum_eq_1]; rfl
 
+noncomputable section
+
+lemma piecewise_affine_trans {x y z : E} {φ : Path x y} {φ' : Path y z} (hφ : IsPiecewiseAffine φ) (hφ' : IsPiecewiseAffine φ') :
+  IsPiecewiseAffine (φ.trans φ') := by
+  sorry
+
+@[trans]
+def PolygonalLine.trans {x y z : E} (φ : PolygonalLine x y) (φ' : PolygonalLine y z) : PolygonalLine x z where
+  toFun := (fun t : ℝ => if t ≤ 1 / 2 then φ.extend (2 * t) else φ'.extend (2 * t - 1)) ∘ (↑)
+  continuous_toFun := by
+    refine
+      (Continuous.if_le ?_ ?_ continuous_id continuous_const (by simp)).comp
+        continuous_subtype_val <;>
+    fun_prop
+  source' := by simp
+  target' := by norm_num
+  piecewise_affine := piecewise_affine_trans φ.piecewise_affine φ'.piecewise_affine
+
+end
+
+lemma polygonal_line_trans_subset {x y z : E} {U : Set E} {φ : PolygonalLine x y} {φ' : PolygonalLine y z} (hφ : Set.range ↑φ ⊆ U) (hφ' : Set.range ↑φ' ⊆ U) :
+  Set.range ↑(φ.trans φ') ⊆ U := by
+      rintro w ⟨t, h⟩; simp [PolygonalLine.trans] at h
+      change (ite _ _ _) = w at h; split_ifs at h with range_t
+      · rw [← h]
+        have : φ.extend (2 * ↑t) ∈ range ↑φ := ⟨⟨2 * ↑t, ⟨by linarith [t.2.1], by linarith⟩⟩, by rw [φ.extend_apply ⟨by linarith [t.2.1], by linarith⟩]; rfl⟩
+        exact hφ this
+      rw [← h]
+      have : φ'.extend (2 * ↑t - 1) ∈ range ↑φ' := ⟨⟨2 * ↑t - 1, ⟨by linarith, by linarith [t.2.2]⟩⟩, by rw [φ'.extend_apply ⟨by linarith, by linarith [t.2.2]⟩]; rfl⟩
+      exact hφ' this
 
 lemma polygonal_connected_of_connected (U : Set E) (Uopen : IsOpen U)  :
   IsConnected U → ∀ x y : E, x ∈ U → y ∈ U → ∃ ϕ : PolygonalLine x y, Set.range ϕ ⊆ U := by
@@ -118,11 +148,24 @@ lemma polygonal_connected_of_connected (U : Set E) (Uopen : IsOpen U)  :
         apply subset_trans (convex_iff_segment_subset.mp (convex_ball a ε) binball (Metric.mem_ball_self εpos)) ball
       rcases polygonalpath₁ with ⟨ϕ₁, hϕ₁⟩
       rcases polygonalpath₂ with ⟨ϕ₂, hϕ₂⟩
-      sorry
+      use ϕ₁.trans ϕ₂
+      exact polygonal_line_trans_subset hϕ₁ hϕ₂
     apply IsOpen.preimage continuous_subtype_val
     apply Metric.isOpen_iff.mpr
     rintro a aV
-    sorry
+    rw [V_def] at aV
+    rcases aV with ⟨aU, ⟨ϕ₁, hϕ₁⟩⟩
+    have : ∃ ε > 0, Metric.ball a ε ⊆ U := Metric.isOpen_iff.mp Uopen a aU
+    rcases this with ⟨ε, ⟨εpos, ballinU⟩⟩
+    use ε, εpos; rintro b binball; rw [V_def]
+    use ballinU binball
+    have : Set.range ↑(lineSegment a b) ⊆ Metric.ball a ε := by
+      rw [segment_range_eq_segment]
+      apply convex_iff_segment_subset.mp (convex_ball _ _) (Metric.mem_ball_self _) binball
+      exact εpos
+    have hϕ₂ : range ↑(lineSegment a b) ⊆ U := by intros x h; apply ballinU; apply this; apply h
+    use ϕ₁.trans (lineSegment a b)
+    exact polygonal_line_trans_subset hϕ₁ hϕ₂
   have : V' = Set.univ := by
     rcases ((connectedSpace_iff_clopen.mp Uconnected).2 V' V'clopen)
     · contradiction
