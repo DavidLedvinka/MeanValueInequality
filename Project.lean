@@ -46,6 +46,7 @@ instance : FunLike (PolygonalLine a b)  I  E where
 #check IsConnected.isPreconnected
 #check connectedSpace_iff_clopen
 
+/--The trivial path from x to itself is a polygonal line.-/
 def constantPolygonalLine (x : E) : PolygonalLine x x where
   toFun := fun _ ↦ x
   source' := rfl
@@ -54,6 +55,7 @@ def constantPolygonalLine (x : E) : PolygonalLine x x where
     use 1, Fin.cases 0 (fun _ ↦ 1); dsimp; intros
     use fun _ ↦ AffineMap.const ℝ ℝ x; intros; dsimp
 
+/--The segment connecting x and y is a polygonal line.-/
 def lineSegment (x y : E) : PolygonalLine x y where
   toFun := fun ⟨t, _⟩ ↦ t • y + (1 - t) • x
   source' := by simp
@@ -64,6 +66,7 @@ def lineSegment (x y : E) : PolygonalLine x y where
     use fun _ ↦ (AffineMap.lineMap x y); intros
     rw [AffineMap.lineMap]; dsimp; rw [smul_sub, sub_smul, one_smul, add_sub, ← add_sub_right_comm]
 
+/--The range of a segment-polygonal-line is a segment.-/
 lemma segment_range_eq_segment (x y : E) : Set.range (lineSegment x y) = segment ℝ x y := by
   ext; simp [segment, lineSegment]
   constructor; rintro ⟨a, ⟨⟨a0, a1⟩, sum_eq⟩⟩; use (1 - a), by linarith, a, a0, by ring_nf
@@ -77,6 +80,7 @@ lemma segment_range_eq_segment (x y : E) : Set.range (lineSegment x y) = segment
 
 noncomputable section
 
+/--The head-to-tail composition of two piecewise-affine Paths is piecewise-affine.-/
 lemma piecewise_affine_trans {x y z : E} {φ : Path x y} {φ' : Path y z} (hφ : IsPiecewiseAffine φ) (hφ' : IsPiecewiseAffine φ') :
   IsPiecewiseAffine (φ.trans φ') := by
   sorry
@@ -95,6 +99,7 @@ def PolygonalLine.trans {x y z : E} (φ : PolygonalLine x y) (φ' : PolygonalLin
 
 end
 
+/--The head-to-tail composition of two polygonal lines contained in a subset is still contained in that subset.-/
 lemma polygonal_line_trans_subset {x y z : E} {U : Set E} {φ : PolygonalLine x y} {φ' : PolygonalLine y z} (hφ : Set.range ↑φ ⊆ U) (hφ' : Set.range ↑φ' ⊆ U) :
   Set.range ↑(φ.trans φ') ⊆ U := by
       rintro w ⟨t, h⟩; simp [PolygonalLine.trans] at h
@@ -106,6 +111,7 @@ lemma polygonal_line_trans_subset {x y z : E} {U : Set E} {φ : PolygonalLine x 
       have : φ'.extend (2 * ↑t - 1) ∈ range ↑φ' := ⟨⟨2 * ↑t - 1, ⟨by linarith, by linarith [t.2.2]⟩⟩, by rw [φ'.extend_apply ⟨by linarith, by linarith [t.2.2]⟩]; rfl⟩
       exact hφ' this
 
+/--A subset of a normed vector space is connected by polygonal lines if it is connected.-/
 lemma polygonal_connected_of_connected (U : Set E) (Uopen : IsOpen U)  :
   IsConnected U → ∀ x y : E, x ∈ U → y ∈ U → ∃ ϕ : PolygonalLine x y, Set.range ϕ ⊆ U := by
   intro Uconnected x y xu yu
