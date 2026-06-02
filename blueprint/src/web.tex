@@ -76,5 +76,40 @@
 % \begin{proof}
 %   This is the proof of my theorem.
 % \end{proof}
+\begin{theorem}
+  \label{thm:existence of polygonal line}
+  if $U$ is an open connected set of a normed vector space, then any two points of $U$ can be joined by a polygonal line in $U$.
+\end{theorem}
 
+\begin{lemma}
+    let $x \in U$, and $V$ the set of all points in $U$ that can be joined to $x$ by a polygonal line contained in $U$. Then $V$ is open.
+\end{lemma}
+\begin{proof}
+    let $a \in V$ be the end of the polygonal line $l$ which starts from $x$.\\ Since $U$ is open, there exist a ball $B(a,r)$ contained in $U$. Every points $p \in B(a,r)$ can be joined to $a$ by a straight line. Therefore, by joining the two polygonal line, we have a polygonal line joining $x$ and $p$. Hence, $B(a,r) \subset V$ and $V$ is open.
+\end{proof}
+\begin{lemma}
+    $V$ is closed in $U$.
+\end{lemma}
+\begin{proof}
+    Let $a \in \overline{V}$, Since $U$ is open, there exists a ball $B(a,r)$ contained in $U$. Since $a$ is in the closure of $V$, there exists a point $b \in B(a,r) \cap V$. Then $a$ can be joined to $b$ via a straight line contained in $U$ and $b$ can be joined to $x$ by a polygonal line in $U$. Therefore, $a$ can be joined to $x$ by a polygonal line in $U$. Hence $a \in V$ and $V$ is closed in $U$.
+\end{proof}
+\begin{proof}[Proof of Theorem \ref{thm:existence of polygonal line}]
+    Since $V$ is both open and closed in $U$, and $U$ is connected then either $V = U$ or $V = \emptyset$. If $U$ is not empty then $V$ contained $x$ and is not empty, Hence $V = U$.\\ Otherwise if $U = \emptyset$, then the result is trivial.
+\end{proof}
+\begin{definition}
+    Let $U$ be an open connected set of a Banach space $E$. for $a, b \in U$, define $d_U(a,b)$ to be the infimum of the lengths of the polygonal lines contained in $U$ joining $a$ and $b$.
+\end{definition}
+\begin{theorem}
+    $d_U(a,b)$ is a distance in the topological space $U$.
+\end{theorem}
+\begin{proof}
+
+\end{proof}
+\begin{theorem}
+    Let $U$ be a connected open set of a Banach space $E$. Let $f: U \rightarrow F$ be a differentiable mapping with values in a Banach space $F$. Assume that $$||f'(x)|| \leq k, \forall x \in U$$
+    Then, for any $x_1,x_2 \in U$, $||f(x_1)-f(x_2)|| \leq k \cdot d_U(x_1,x_2)$.
+\end{theorem}
+\begin{proof}
+    Let $x_1,x_2 \in U$ and $l$ a polygonal line contained in $U$ joining $x_1$ and $x_2$. then let $l$ be composed of $n$ line segments with endpoints $(a_0,a_1), (a_1,a_2), \dots, (a_{n-1},a_n)$, where $a_0=x_1, a_n = x_2$ and $a_i \in U$. Then from the mean value inequality on each interval $(a_i, a_{i+1})$, we have $||f(a_i)-f(a_{i+1})|| \leq k \cdot ||a_i-a_{i+1}||$. From the triangle inequality we have $$||f(x_1)-f(x_2)|| \leq \sum_{i=0}^{n-1} ||f(a_i)-f(a_{i+1})|| \leq \sum_{i=0}^{n-1} k \cdot ||a_i-a_{i+1}|| = k \cdot \text{length}(l)$$ as $\text{length}(l)$ is the sum of the length of each interval. Therefore, taking the infimum we get, $$||f(x_1)-f(x_2)|| \leq k \cdot \inf{\text{length}(l)} = k\cdot d_U(x_1,x_2)$$
+\end{proof}
 \end{document}
