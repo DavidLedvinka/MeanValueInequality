@@ -28,7 +28,7 @@ open Set unitInterval
 
 /--A path is piecewise affine if it can be divided into pieces of affine maps.-/
 structure IsPiecewiseAffine {a b : E} (ϕ : Path a b) : Prop where
-  piecewise_affine : ∃ (n : ℕ) (ι : Fin (n + 1) → I), ι 0 = 0 → ι (Fin.last n) = 1 → ∃ l : Fin n → ℝ →ᵃ[ℝ] E, ∀ i : Fin n, ∀ x ∈ Set.Icc (ι (Fin.castLE (show n ≤ n + 1 from by linarith) i)) (ι (Fin.castSucc i)), ϕ x = (l i) x
+  piecewise_affine : ∃ (n : ℕ), n > 0 ∧ ∃ (ι : Fin (n + 1) → I), ι 0 = 0 ∧ ι (Fin.last n) = 1 ∧ ∃ l : Fin n → ℝ →ᵃ[ℝ] E, ∀ i : Fin n, ∀ t ∈ Set.Icc (ι ⟨i, by linarith [i.2]⟩) (ι i.succ), ϕ t = (l i) t
 
 /--A polygonal line is a path that is piecewise affine.-/
 @[ext]
@@ -52,7 +52,8 @@ def constantPolygonalLine (x : E) : PolygonalLine x x where
   source' := rfl
   target' := rfl
   piecewise_affine := by
-    use 1, Fin.cases 0 (fun _ ↦ 1); dsimp; intros
+    use 1; dsimp; refine ⟨by norm_num, ?_⟩; use Fin.cases 0 (fun _ ↦ 1)
+    refine ⟨rfl, rfl, ?_⟩
     use fun _ ↦ AffineMap.const ℝ ℝ x; intros; dsimp
 
 /--The segment connecting x and y is a polygonal line.-/
@@ -61,8 +62,11 @@ def lineSegment (x y : E) : PolygonalLine x y where
   source' := by simp
   target' := by simp
   piecewise_affine := by
-    use 1, Fin.cases 0 (fun _ ↦ 1)
-    dsimp; intros
+    use 1
+    refine ⟨by norm_num, ?_⟩
+    use Fin.cases 0 (fun _ ↦ 1)
+    dsimp
+    refine ⟨rfl, rfl, ?_⟩
     use fun _ ↦ (AffineMap.lineMap x y); intros
     rw [AffineMap.lineMap]; dsimp; rw [smul_sub, sub_smul, one_smul, add_sub, ← add_sub_right_comm]
 
@@ -83,7 +87,78 @@ noncomputable section
 /--The head-to-tail composition of two piecewise-affine Paths is piecewise-affine.-/
 lemma piecewise_affine_trans {x y z : E} {φ : Path x y} {φ' : Path y z} (hφ : IsPiecewiseAffine φ) (hφ' : IsPiecewiseAffine φ') :
   IsPiecewiseAffine (φ.trans φ') := by
-  sorry
+  rcases hφ with ⟨n₁, ⟨n₁pos,⟨ι₁, ⟨ι₁0, ⟨ι₁n₁, ⟨l₁, h₁⟩⟩⟩⟩⟩⟩
+  rcases hφ' with ⟨n₂, ⟨n₂pos, ⟨ι₂, ⟨ι₂0, ⟨ι₂n₂, ⟨l₂, h₂⟩⟩⟩⟩⟩⟩
+  rw [Path.trans]; use (n₁ + n₂); refine ⟨by linarith, ?_⟩
+  use fun ⟨n, hn⟩ ↦ if h : n ≤ n₁
+    then ⟨↑(ι₁ ⟨n, by omega⟩)/2, ⟨div_nonneg (ι₁ _).2.1 (by norm_num), by field_simp; exact le_trans (ι₁ _).2.2 (by norm_num)⟩⟩
+    else ⟨(↑(ι₂ ⟨n - n₁, by omega⟩) + 1)/2, ⟨div_nonneg (add_nonneg (ι₂ _).2.1 (by norm_num)) (by norm_num), by field_simp; apply add_le_of_le_sub_right; exact le_trans (ι₂ _).2.2 (by norm_num)⟩⟩
+  constructor
+  · simp [ι₁0]
+  constructor
+  · dsimp
+    simp [ne_of_gt n₂pos]; ext; dsimp; field_simp; apply add_eq_of_eq_sub; norm_num
+    exact ι₂n₂
+  use fun ⟨n, hn⟩ ↦ if h : n < n₁ then (l₁ ⟨n, by omega⟩).comp ((2 : ℝ) • LinearMap.id).toAffineMap
+    else (l₂ ⟨n - n₁, by omega⟩).comp ⟨fun x ↦ 2 * x - 1, (2 : ℝ) • LinearMap.id, by intro p v; simp [two_mul, sub_eq_add_neg, mul_add, add_assoc, add_left_comm, add_comm]⟩
+  intros i t trange
+  dsimp; split_ifs with ht hi hi
+  <;> simp <;> dsimp at trange
+  · rw [φ.extend_apply];
+    apply h₁ ⟨i, _⟩ ⟨2 * t, _⟩
+    simp [(le_of_lt hi), hi] at trange; rcases trange with ⟨t₁, t₂⟩
+    constructor
+    · show ↑(ι₁ ⟨↑i, _⟩) ≤ (2 : ℝ) * ↑t
+      change ((ι₁ ⟨↑i, _⟩) : ℝ) / 2 ≤ (t:ℝ) at t₁
+      linarith
+    simp; show (2 : ℝ) * t ≤ ((ι₁ ⟨↑i + 1, _⟩) : ℝ)
+    change (t:ℝ) ≤ ((ι₁ ⟨↑i + 1, _⟩) : ℝ) / 2 at t₂
+    linarith
+    exact ⟨mul_nonneg (by norm_num) t.2.1, by linarith⟩
+  · rcases (eq_or_lt_of_le (ι₂ ⟨↑i - n₁, by omega⟩).2.1) with hi' | hi'
+    · have : (1:ℝ) / 2 ≤ ↑t := by
+        rcases trange with ⟨trange, _⟩
+        rcases (lt_or_eq_of_le (by push Not at hi; exact hi)) with h | h
+        · simp [not_le_of_gt h] at trange;
+          change (((ι₂ ⟨↑i - n₁, _⟩) : ℝ) + 1) / 2 ≤ (t : ℝ) at trange
+          refine le_trans ?_ trange
+          linarith [(ι₂ ⟨↑i - n₁, by omega⟩).2.1]
+        simp [← h] at trange; change ((ι₁ (Fin.last n₁)):ℝ) / 2 ≤ (t : ℝ) at trange
+        rw [ι₁n₁] at trange; exact trange
+      have : (1:ℝ) / 2 = (t : ℝ) := eq_of_le_of_ge this ht
+      rw [φ.extend_apply]; simp [← this]
+      rw [← h₂ ⟨↑i - n₁, by omega⟩ ⟨0, unitInterval.zero_mem⟩]; dsimp
+      rw [φ'.source]
+      refine ⟨?_, unitInterval.nonneg _⟩; simp [hi']
+      exact ⟨mul_nonneg (by norm_num) t.2.1, by rw [← this]; norm_num⟩
+    absurd ht; push Not; push Not at hi
+    have : n₁ < ↑i := by
+      by_contra!; have : n₁ = ↑i := eq_of_ge_of_le this hi
+      have : ((ι₂ ⟨↑i - n₁, by omega⟩) : ℝ) = 0 := by simp [this, ι₂0]
+      rw [this] at hi'; exact (lt_irrefl 0) hi'
+    rcases trange with ⟨trange, _⟩
+    simp [not_le_of_gt this] at trange; change (((ι₂ ⟨↑i - n₁, by omega⟩) : ℝ) + 1) / 2 ≤ (t : ℝ) at trange
+    linarith
+  · exfalso
+    apply ht
+    rcases trange with ⟨_, trange⟩
+    simp [Nat.succ_le_of_lt hi] at trange; change (t : ℝ) ≤ ((ι₁ ⟨↑i + 1, by omega⟩) : ℝ) / 2 at trange
+    linarith [(ι₁ ⟨↑i + 1, by omega⟩).2.2]
+  rw [φ'.extend_apply]
+  apply h₂ ⟨i - n₁, _⟩ ⟨2 * t - 1, _⟩
+  push Not at ht hi
+  show ((2 * t - 1) : ℝ) ∈ Icc ((ι₂ ⟨↑i - n₁, by omega⟩) : ℝ) ((ι₂ ⟨↑i - n₁ + 1, by omega⟩) : ℝ)
+  rcases (eq_or_lt_of_le hi) with hi | hi
+  · simp [le_of_eq hi.symm, not_lt_iff_eq_or_lt.mpr (Or.inl hi.symm)] at trange
+    rcases trange with ⟨_, trange⟩; change (t : ℝ) ≤ (((ι₂ ⟨↑i + 1 - n₁, by omega⟩) : ℝ) + 1) / 2 at trange
+    simp [hi] at trange
+    simp [hi, ι₂0]; exact ⟨by linarith, by linarith⟩
+  simp [not_le_of_gt hi, not_lt_of_gt hi] at trange
+  rcases trange with ⟨t₁, t₂⟩;
+  change (((ι₂ ⟨↑i - n₁, by omega⟩) : ℝ) + 1) / 2 ≤ (t : ℝ) at t₁; change (t : ℝ) ≤ (((ι₂ ⟨↑i + 1 - n₁, by omega⟩) : ℝ) + 1) / 2 at t₂
+  simp [Nat.succ_sub (le_of_lt hi)] at t₂
+  exact ⟨by linarith, by linarith⟩
+  exact ⟨by linarith, by linarith [t.2.2]⟩
 
 @[trans]
 def PolygonalLine.trans {x y z : E} (φ : PolygonalLine x y) (φ' : PolygonalLine y z) : PolygonalLine x z where
