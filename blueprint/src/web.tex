@@ -29,17 +29,12 @@
 \maketitle
 \input{content}
 
-% \begin{definition}
-%     \label{def:myDef}
-%     This is the definition of a polygonal line segment.
-% \end{definition}
-
-% \begin{definition}
-%   \label{def:myDef}
-%   \lean{myDef}
-%   \leanok
-%   This is a definition
-% \end{definition}
+\begin{definition}
+    \label{def:myDef}
+    \lean{PolygonalLine}
+    \leanok
+    This is the definition of a polygonal line segment.
+\end{definition}
 
 % \begin{theorem}
 %   \label{thm:my_theorem1}
@@ -78,8 +73,16 @@
 % \end{proof}
 \begin{theorem}
   \label{thm:existence of polygonal line}
+  \lean{polygonal_connected_of_connected}
+  \uses{def:myDef}
+  \leanok
   if $U$ is an open connected set of a normed vector space, then any two points of $U$ can be joined by a polygonal line in $U$.
 \end{theorem}
+
+\begin{proof}
+\leanok
+% TODO: Add proof to latex
+\end{proof}
 
 \begin{lemma}
     let $x \in U$, and $V$ the set of all points in $U$ that can be joined to $x$ by a polygonal line contained in $U$. Then $V$ is open.
@@ -99,6 +102,7 @@
 \begin{definition}
     Let $U$ be an open connected set of a Banach space $E$. for $a, b \in U$, define $d_U(a,b)$ to be the infimum of the lengths of the polygonal lines contained in $U$ joining $a$ and $b$.
 \end{definition}
+
 \begin{theorem}
     $d_U(a,b)$ is a distance in the topological space $U$.
 \end{theorem}
