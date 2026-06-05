@@ -116,4 +116,72 @@
 \begin{proof}
     Let $x_1,x_2 \in U$ and $l$ a polygonal line contained in $U$ joining $x_1$ and $x_2$. then let $l$ be composed of $n$ line segments with endpoints $(a_0,a_1), (a_1,a_2), \dots, (a_{n-1},a_n)$, where $a_0=x_1, a_n = x_2$ and $a_i \in U$. Then from the mean value inequality on each interval $(a_i, a_{i+1})$, we have $||f(a_i)-f(a_{i+1})|| \leq k \cdot ||a_i-a_{i+1}||$. From the triangle inequality we have $$||f(x_1)-f(x_2)|| \leq \sum_{i=0}^{n-1} ||f(a_i)-f(a_{i+1})|| \leq \sum_{i=0}^{n-1} k \cdot ||a_i-a_{i+1}|| = k \cdot \text{length}(l)$$ as $\text{length}(l)$ is the sum of the length of each interval. Therefore, taking the infimum we get, $$||f(x_1)-f(x_2)|| \leq k \cdot \inf{\text{length}(l)} = k\cdot d_U(x_1,x_2)$$
 \end{proof}
+
+
+\begin{definition}
+    \label{def:path}
+    In a topological space $X$ a continuous mapping $\varphi \colon [0,1] \to X$ is called a \emph{path}; the point $\varphi(0)$ is called the \emph{origin of the path} and the point $\varphi(1)$ is called the \emph{end of the path}. Two points $a,b \in X$ can be joined by a path if there exists $\varphi$ such that $\varphi(0) = a$ and $\varphi(1) = b$
+\end{definition}
+
+\begin{definition}
+    \label{def:polygonalLine}
+    Let $(E, ||\cdot||)$ be a normed vector space over $\mathbb{R}$, with subset $A \subseteq E$. A \emph{polygonal line} in $A$ is a path $\varphi \colon [0,1] \to A$ such that there exists $n \geq 1$ with points $t_0,\dots,t_n$ on the interval $[0,1]$:
+    \begin{center}
+    $t_0 = 0 < t_1 < \dotsb < t_{n-1} < t_n = 1$
+    \end{center}
+    so that for each $i \in \{0,\dots,n-1\}$, the restriction of $\varphi$ on the interval $[t_i,t_{i+1}]$ is an affine map. This is to say that $t \in [t_i,t_{i+1}] \implies \varphi(t) = t \cdot v_i + c_i$ for some $v_i,c_i \in E$. Hence the image of $[t_i,t_{i+1}]$ in $\varphi$ is a straight-line segment in $A$ from $\varphi(t_i)$ to $\varphi(t_{i+1})$. 
+\end{definition}
+
+\begin{definition}
+    \label{def:intervalLength}
+    Let $(E, ||\cdot||)$ be a normed vector space over $\mathbb{R}$. The \emph{length of an interval} with origin $a \in E$ and end $b \in E$ is $d(a,b) := ||b - a||$.
+\end{definition}
+
+\begin{definition}
+    \label{def:polygonalLineLength}
+    Given a partition $(t_i)_{i=0}^{n}$ for some fixed $n \geq 1$, the \emph{length of a polygonal line} $\varphi$ respecting this partition is the sum of the lengths of the intervals from which it is formed:
+    \begin{center}
+    $L((t_i), n, \varphi) := \sum_{i=0}^{n-1}||\varphi(t_{i+1}) - \varphi(t_i)||$
+    \end{center}
+\end{definition}
+
+\begin{lemma}
+    \label{lemma:norm_sum_at_least_sum_norm}
+    Given a sequence $(a_i)_{i=0}^{n}$ with $a_i \in E$ for some $n \geq 1$, $\sum_{i=0}^{n-1}||a_{i+1} - a_i|| \geq ||a_n - a_0||$
+\end{lemma}
+
+\begin{proof}[Proof of Lemma \ref{lemma:norm_sum_at_least_sum_norm}]
+    \begin{itemize}
+        \item \textbf{Base Case ($n=1$):}
+        For $n=1$, we need $||a_1 - a_0|| \geq ||a_1 - a_0||$ which follows immediately by reflexivity.
+        
+        \item \textbf{Induction Hypothesis:}
+        Assume that the result holds for any such sequence $(b_i)_{i=0}^k$. That is, 
+        \begin{center}
+            $\sum_{i=0}^{k-1}||b_{i+1} - b_i|| \geq ||b_k - b_0||$
+        \end{center}
+        
+        \item \textbf{Induction Step:}
+        We want to show that $\sum_{i=0}^{k}||a_{i+1} - a_i|| \geq ||a_{k+1} - a_0||$ must follow from this assumption, for some arbitrary sequence  $(a_i)_{i=0}^{k+1}$.
+
+        $||a_{k+1} - a_0|| =  ||(a_{k+1} - a_k) + (a_k - a_0)|| \\ \leq ||a_{k+1} - a_k|| + ||a_k - a_0|| \\ \leq ||a_{k+1} - a_k|| + \sum_{i=0}^{k-1}||a_{i+1} - a_i|| \\ = \sum_{i=0}^{k}||a_{i+1} - a_i||$
+    \end{itemize}
+    
+    Therefore, by the principle of mathematical induction, $\sum_{i=0}^{n-1}||a_{i+1} - a_i|| \geq ||a_n - a_0||$ for any such sequence with any $n \geq 1$.
+\end{proof}
+
+\begin{theorem}
+\label{thm:polygonal_line_length_at_least_interval_length}
+    % \uses{def:polygonalLineLength}
+    % \uses{def:intervalLength}
+    % \uses{lemma:norm_sum_at_least_sum_norm}
+    The length of a polygonal line $\varphi$ respecting a partition $(t_i)_{i=0}^{n}$ for some fixed $n \geq 1$ between origin $a = \varphi(0)$ and end $b = \varphi(1)$ is at least equal to the length of the interval between these points:
+    \begin{center}
+    $\sum_{i=0}^{n-1}||\varphi(t_{i+1}) - \varphi(t_i)|| \geq ||\varphi(1) - \varphi(0)||$
+    \end{center}
+\end{theorem}
+
+\begin{proof}[Proof of Theorem \ref{thm:polygonal_line_length_at_least_interval_length}]
+    We consider the sequence of points $(p_i)_{i=0}^n$ with $p_i := \varphi(t_i)$. Then by the previous lemma, with $p_0 = \varphi(0)$ and $p_n = \varphi(1)$, our desired result follows immediately.
+\end{proof}
 \end{document}
