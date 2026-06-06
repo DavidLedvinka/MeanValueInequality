@@ -29,12 +29,12 @@
 \maketitle
 \input{content}
 
-\begin{definition}
-    \label{def:myDef}
-    \lean{PolygonalLine}
-    \leanok
-    This is the definition of a polygonal line segment.
-\end{definition}
+%\begin{definition}
+%    \label{def:myDef}
+%    \lean{PolygonalLine}
+%    \leanok
+%    This is the definition of a polygonal line segment.
+%\end{definition}
 
 % \begin{theorem}
 %   \label{thm:my_theorem1}
@@ -72,11 +72,13 @@
 %   This is the proof of my theorem.
 % \end{proof}
 \begin{theorem}
-  \label{thm:existence of polygonal line}
-  \lean{polygonal_connected_of_connected}
-  \uses{def:myDef}
-  \leanok
-  if $U$ is an open connected set of a normed vector space, then any two points of $U$ can be joined by a polygonal line in $U$.
+    \label{thm:existence of polygonal line}
+    \lean{polygonal_connected_of_connected}
+    \uses{lem:V is open}
+    \uses{lem:V is closed}
+    \uses{def:polygonalLine}
+    \leanok
+    if $U$ is an open connected set of a normed vector space, then any two points of $U$ can be joined by a polygonal line in $U$.
 \end{theorem}
 
 \begin{proof}
@@ -85,12 +87,16 @@
 \end{proof}
 
 \begin{lemma}
+    \label{lem:V is open}
+    \uses{def:polygonalLine}
     let $x \in U$, and $V$ the set of all points in $U$ that can be joined to $x$ by a polygonal line contained in $U$. Then $V$ is open.
 \end{lemma}
 \begin{proof}
     let $a \in V$ be the end of the polygonal line $l$ which starts from $x$.\\ Since $U$ is open, there exist a ball $B(a,r)$ contained in $U$. Every points $p \in B(a,r)$ can be joined to $a$ by a straight line. Therefore, by joining the two polygonal line, we have a polygonal line joining $x$ and $p$. Hence, $B(a,r) \subset V$ and $V$ is open.
 \end{proof}
 \begin{lemma}
+    \label{V is closed}
+    \uses{def:polygonalLine}
     $V$ is closed in $U$.
 \end{lemma}
 \begin{proof}
@@ -100,16 +106,23 @@
     Since $V$ is both open and closed in $U$, and $U$ is connected then either $V = U$ or $V = \emptyset$. If $U$ is not empty then $V$ contained $x$ and is not empty, Hence $V = U$.\\ Otherwise if $U = \emptyset$, then the result is trivial.
 \end{proof}
 \begin{definition}
+    \label{def:distance in U}
+    \uses{thm:existence of polygonal line}
     Let $U$ be an open connected set of a Banach space $E$. for $a, b \in U$, define $d_U(a,b)$ to be the infimum of the lengths of the polygonal lines contained in $U$ joining $a$ and $b$.
 \end{definition}
 
 \begin{theorem}
+    \label{thm:d_U is a distance}
+    \uses{def:distance in U}
     $d_U(a,b)$ is a distance in the topological space $U$.
 \end{theorem}
 \begin{proof}
 
 \end{proof}
 \begin{theorem}
+    \label{thm:mean value theorem in connected open set}
+    \uses{def:distance in U}
+    \uses{thm:existence of polygonal line}
     Let $U$ be a connected open set of a Banach space $E$. Let $f: U \rightarrow F$ be a differentiable mapping with values in a Banach space $F$. Assume that $$||f'(x)|| \leq k, \forall x \in U$$
     Then, for any $x_1,x_2 \in U$, $||f(x_1)-f(x_2)|| \leq k \cdot d_U(x_1,x_2)$.
 \end{theorem}
@@ -129,7 +142,7 @@
     \begin{center}
     $t_0 = 0 < t_1 < \dotsb < t_{n-1} < t_n = 1$
     \end{center}
-    so that for each $i \in \{0,\dots,n-1\}$, the restriction of $\varphi$ on the interval $[t_i,t_{i+1}]$ is an affine map. This is to say that $t \in [t_i,t_{i+1}] \implies \varphi(t) = t \cdot v_i + c_i$ for some $v_i,c_i \in E$. Hence the image of $[t_i,t_{i+1}]$ in $\varphi$ is a straight-line segment in $A$ from $\varphi(t_i)$ to $\varphi(t_{i+1})$. 
+    so that for each $i \in \{0,\dots,n-1\}$, the restriction of $\varphi$ on the interval $[t_i,t_{i+1}]$ is an affine map. This is to say that $t \in [t_i,t_{i+1}] \implies \varphi(t) = t \cdot v_i + c_i$ for some $v_i,c_i \in E$. Hence the image of $[t_i,t_{i+1}]$ in $\varphi$ is a straight-line segment in $A$ from $\varphi(t_i)$ to $\varphi(t_{i+1})$.
 \end{definition}
 
 \begin{definition}
@@ -154,19 +167,19 @@
     \begin{itemize}
         \item \textbf{Base Case ($n=1$):}
         For $n=1$, we need $||a_1 - a_0|| \geq ||a_1 - a_0||$ which follows immediately by reflexivity.
-        
+
         \item \textbf{Induction Hypothesis:}
-        Assume that the result holds for any such sequence $(b_i)_{i=0}^k$. That is, 
+        Assume that the result holds for any such sequence $(b_i)_{i=0}^k$. That is,
         \begin{center}
             $\sum_{i=0}^{k-1}||b_{i+1} - b_i|| \geq ||b_k - b_0||$
         \end{center}
-        
+
         \item \textbf{Induction Step:}
         We want to show that $\sum_{i=0}^{k}||a_{i+1} - a_i|| \geq ||a_{k+1} - a_0||$ must follow from this assumption, for some arbitrary sequence  $(a_i)_{i=0}^{k+1}$.
 
         $||a_{k+1} - a_0|| =  ||(a_{k+1} - a_k) + (a_k - a_0)|| \\ \leq ||a_{k+1} - a_k|| + ||a_k - a_0|| \\ \leq ||a_{k+1} - a_k|| + \sum_{i=0}^{k-1}||a_{i+1} - a_i|| \\ = \sum_{i=0}^{k}||a_{i+1} - a_i||$
     \end{itemize}
-    
+
     Therefore, by the principle of mathematical induction, $\sum_{i=0}^{n-1}||a_{i+1} - a_i|| \geq ||a_n - a_0||$ for any such sequence with any $n \geq 1$.
 \end{proof}
 
