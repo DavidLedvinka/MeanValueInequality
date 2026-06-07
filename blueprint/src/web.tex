@@ -117,7 +117,21 @@
     $d_U(a,b)$ is a distance in the topological space $U$.
 \end{theorem}
 \begin{proof}
+Let $\varphi \colon [0,1] \to U$  be an arbitrary polygonal line joining $a$ to $b$ in $U$, and $t_0,\dots,t_n \in [0,1]$ the finitely many points such that $\varphi \colon [t_i, t_{i+1}] \to U$ is affine for all $i \in \{0, \dots, n-1\}$.
 
+    \textit{Positivity}: The length of $\varphi$ is $L((t_i), n, \varphi) := \sum_{i=0}^{n-1}||\varphi(t_{i+1}) - \varphi(t_i)||$ which by the definition of a norm function is strictly non-negative. Since $d_U(a,b)$ is the infimum of a strictly non-negative set it must itself be non-negative. If $d_U(a,b) = 0$, by a previous theorem $||b - a|| \leq d_U(a,b) = 0$, which implies $a = b$.
+
+    \textit{Symmetry}: For any polygonal line $\varphi$ from $a$ to $b$ in $U$, the reverse path $\psi:[0,1] \to U$ defined $\psi(x) = \varphi(1-x)$ is a polygonal line from $b$ to $a$.Length($\psi$) $= \sum_{i=0}^{n-1}||\psi(1-t_i)-\psi(1-t_{i+1})|| = \sum_{i=0}^{n-1}||\varphi(t_{i+1})-\varphi(t_i)|| =$ Length($\varphi$), so the set of lengths of polygonal lines from $a$ to $b$ and from $b$ to $a$ are equivalent and therefore $d_U(a,b) = d_U(b,a)$.
+
+    \textit{Triangle Inequality}: Let $\varphi:[0,1] \to U$ be a polygonal line from $a$ to $b$ and $\psi:[0,1] \to U$ be a polygonal line from $b$ to $c$. The extension of $\varphi$ by $\psi$ is a polygonal line $\theta:[0,1] \to U$ from $a$ to $c$, where
+    \begin{center}
+    $\theta(x) = \Bigl\{
+    \begin{array}{cl}
+    \varphi(2x)\quad&\mbox{if $x\in[0,\frac{1}{2}]$}\\
+    \psi((2x-1)\quad&\mbox{if $x\in[\frac{1}{2},1]$}
+    \end{array}$
+    \end{center}
+By the definition of the infimum, $d_U(a,c) \leq$ Length($\theta$) $=$ Length($\varphi$) $+$ Length($\psi$), and since $\varphi$ and $\psi$ are arbitrary, $d_U(a,c) \leq d_U(a,b) + d_U(b,c)$.
 \end{proof}
 \begin{theorem}
     \label{thm:mean value theorem in connected open set}
