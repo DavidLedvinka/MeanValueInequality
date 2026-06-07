@@ -1,4 +1,10 @@
-import Mathlib
+import Mathlib.Algebra.Order.Ring.Star
+import Mathlib.AlgebraicTopology.SimplexCategory.Basic
+import Mathlib.Analysis.Normed.Group.AddTorsor
+import Mathlib.Analysis.Normed.Module.Convex
+import Mathlib.Analysis.Normed.Order.Lattice
+import Mathlib.Analysis.RCLike.Basic
+import Mathlib.Data.Int.Star
 
 section polygonal_line
 
