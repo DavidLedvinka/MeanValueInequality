@@ -1,4 +1,13 @@
-import Mathlib
+module
+
+public import Mathlib.Algebra.Order.Ring.Star
+public import Mathlib.AlgebraicTopology.SimplexCategory.Basic
+public import Mathlib.Analysis.Calculus.FDeriv.Defs
+public import Mathlib.Analysis.Normed.Group.AddTorsor
+public import Mathlib.Analysis.Normed.Operator.Basic
+public import Mathlib.Analysis.Normed.Order.Lattice
+public import Mathlib.Analysis.RCLike.Basic
+public import Mathlib.Data.Int.Star
 
 section polygonal_line
 
@@ -28,14 +37,14 @@ open Set unitInterval
 
 /--A path is piecewise affine if it can be divided into pieces of affine maps.-/
 structure IsPiecewiseAffine {a b : E} (ϕ : Path a b) : Prop where
-  piecewise_affine : ∃ (n : ℕ), n > 0 ∧ ∃ (ι : Fin (n + 1) → I), ι 0 = 0 ∧ ι (Fin.last n) = 1 ∧ ∃ l : Fin n → ℝ →ᵃ[ℝ] E, ∀ i : Fin n, ∀ t ∈ Set.Icc (ι ⟨i, by linarith [i.2]⟩) (ι i.succ), ϕ t = (l i) t
+  piecewise_affine : ∃ (n : ℕ+), ∃ (ι : Fin (n + 1) → I), ι 0 = 0 ∧ ι (Fin.last n) = 1 ∧ ∃ l : Fin n → ℝ →ᵃ[ℝ] E, ∀ i : Fin n, ∀ t ∈ Set.Icc (ι ⟨i, by linarith [i.2]⟩) (ι i.succ), ϕ t = (l i) t
 
 /--A polygonal line is a path that is piecewise affine.-/
 @[ext]
 structure PolygonalLine (a b : E) extends Path a b where
   piecewise_affine : IsPiecewiseAffine toPath
 
-def PolygonalLine.length {a b : E} (l : PolygonalLine a b) : ℝ := sorry
+def PolygonalLine.length {a b : E} (ϕ : PolygonalLine a b) : ℝ := sorry
 
 /--A polygonal line behaves like a path, which is a function from the unit interval to the vector space E.-/
 instance : FunLike (PolygonalLine a b)  I  E where
@@ -271,7 +280,7 @@ lemma polygonal_connected_of_connected (U : Set E) (Uopen : IsOpen U)  :
   rw [← this, V_def] at yu
   rcases yu; assumption
 
-#check Convex.norm_image_sub_le_of_norm_hasFDerivWithin_le
+-- #check Convex.norm_image_sub_le_of_norm_hasFDerivWithin_le
 
 /-
 Convex.norm_image_sub_le_of_norm_hasFDerivWithin_le.{u_1, u_3, u_4} {E : Type u_1}
@@ -287,5 +296,6 @@ Convex.norm_image_sub_le_of_norm_hasFDerivWithin_le.{u_1, u_3, u_4} {E : Type u_
 variable {G : Type*} [NormedAddCommGroup G] [NormedSpace ℝ G]
 
 theorem norm_image_sub_le_of_norm_hasFDerivWithin_le' {f : E → G} {C : ℝ} {s : Set E} {x y : s}
-  {f' : E → E →L[ℝ] G} (hf : ∀ x ∈ s, HasFDerivWithinAt f (f' x) s x) (bound : ∀ x ∈ s, ‖f' x‖ ≤ C)
-  (hs : IsConnected s) (hs' : IsOpen s) : ‖f y - f x‖ ≤ C * pathDistance y x := by sorry
+    {f' : E → E →L[ℝ] G} (hf : ∀ x ∈ s, HasFDerivWithinAt f (f' x) s x) (bound : ∀ x ∈ s, ‖f' x‖ ≤ C)
+    (hs : IsConnected s) (hs' : IsOpen s) : ‖f y - f x‖ ≤ C * pathDistance y x := by
+  sorry
