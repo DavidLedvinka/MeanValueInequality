@@ -1,14 +1,8 @@
-import Mathlib.Algebra.Order.Ring.Star
-import Mathlib.AlgebraicTopology.SimplexCategory.Basic
-import Mathlib.Analysis.Normed.Group.AddTorsor
-import Mathlib.Analysis.Normed.Module.Convex
-import Mathlib.Analysis.Normed.Order.Lattice
-import Mathlib.Analysis.RCLike.Basic
-import Mathlib.Data.Int.Star
+import Mathlib
 
 section polygonal_line
 
-variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] (a b: E)
+variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] (a b : E)
 open Set unitInterval
 
 --/-- A line segment in a vector space E can be written as the sum of a linear map and a constant.-/
@@ -41,6 +35,8 @@ structure IsPiecewiseAffine {a b : E} (ϕ : Path a b) : Prop where
 structure PolygonalLine (a b : E) extends Path a b where
   piecewise_affine : IsPiecewiseAffine toPath
 
+def PolygonalLine.length {a b : E} (l : PolygonalLine a b) : ℝ := sorry
+
 /--A polygonal line behaves like a path, which is a function from the unit interval to the vector space E.-/
 instance : FunLike (PolygonalLine a b)  I  E where
   coe := fun ϕ ↦ ϕ.toPath.toFun
@@ -48,6 +44,17 @@ instance : FunLike (PolygonalLine a b)  I  E where
     dsimp at h; ext x
     simp only [DFunLike.coe_fn_eq] at h
     cases ϕ₁; cases ϕ₂; congr
+
+noncomputable
+def pathDistance {U : Set E} (x y : U) : ℝ :=
+  ⨅ l : {l : PolygonalLine (x : E) (y : E) // range l ⊆ U}, l.1.length
+
+instance {U : Set E} (hU : IsConnected U) (hU' : IsOpen U) : MetricSpace U where
+  dist := pathDistance
+  dist_self := sorry
+  dist_comm := sorry
+  eq_of_dist_eq_zero := sorry
+  dist_triangle := sorry
 
 #check IsConnected.isPreconnected
 #check connectedSpace_iff_clopen
@@ -263,3 +270,22 @@ lemma polygonal_connected_of_connected (U : Set E) (Uopen : IsOpen U)  :
     intro hx₀; rw [V'_eq_V ⟨x₀, hx₀⟩, this]; trivial
   rw [← this, V_def] at yu
   rcases yu; assumption
+
+#check Convex.norm_image_sub_le_of_norm_hasFDerivWithin_le
+
+/-
+Convex.norm_image_sub_le_of_norm_hasFDerivWithin_le.{u_1, u_3, u_4} {E : Type u_1}
+  [NormedAddCommGroup E] [NormedSpace ℝ E] {𝕜 : Type u_3} {G : Type u_4} [NontriviallyNormedField 𝕜]
+  [IsRCLikeNormedField 𝕜] [NormedSpace 𝕜 E] [NormedAddCommGroup G] [NormedSpace 𝕜 G] {f : E → G}
+  {C : ℝ} {s : Set E} {x y : E} {f' : E → E →L[𝕜] G} (hf : ∀ x ∈ s, HasFDerivWithinAt f (f' x) s x)
+  (bound : ∀ x ∈ s, ‖f' x‖ ≤ C) (hs : Convex ℝ s) (xs : x ∈ s)
+  (ys : y ∈ s) : ‖f y - f x‖ ≤ C * ‖y - x‖
+-/
+
+/- variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] (a b : E) -/
+
+variable {G : Type*} [NormedAddCommGroup G] [NormedSpace ℝ G]
+
+theorem norm_image_sub_le_of_norm_hasFDerivWithin_le' {f : E → G} {C : ℝ} {s : Set E} {x y : s}
+  {f' : E → E →L[ℝ] G} (hf : ∀ x ∈ s, HasFDerivWithinAt f (f' x) s x) (bound : ∀ x ∈ s, ‖f' x‖ ≤ C)
+  (hs : IsConnected s) (hs' : IsOpen s) : ‖f y - f x‖ ≤ C * pathDistance y x := by sorry
