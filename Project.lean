@@ -257,3 +257,14 @@ lemma polygonal_connected_of_connected (U : Set E) (Uopen : IsOpen U)  :
     intro hx₀; rw [V'_eq_V ⟨x₀, hx₀⟩, this]; trivial
   rw [← this, V_def] at yu
   rcases yu; assumption
+
+/--The sum of distances between points in a finite sequence is at least the distance between the first and last points.-/
+lemma sublength_sum_geq_distance (a : ℕ → E):
+∀ n : ℕ, ‖a n - a 0‖ ≤ ∑ i in Finset.range n, ‖a (i+1) - a i‖ := by
+induction n with d hd
+
+
+
+
+/--The length of a polygonal line is at least the length of the interval over its start and end points.-/
+lemma polygonal_length_geq_distance (x y : E) (PolygonalLine x y):
