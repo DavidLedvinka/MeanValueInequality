@@ -101,24 +101,13 @@ theorem nonempty_polygonalLine {U : Set E} (hU : IsConnected U) (a b : E) :
 def PolygonalLine.length {a b : E} (ϕ : PolygonalLine U a b) : ℝ :=
   ∑ i ∈ Set.Icc 1 (Fin.last (ϕ.n + 1)), dist (ϕ.vertice i) (ϕ.vertice (i - 1))
 
-def PolygonalLine.length' {a b : E} (ϕ : PolygonalLine U a b) : ℝ :=
-  ∑ i ∈ Finset.range (ϕ.n + 1), dist (ϕ.toNat_vertices i) (ϕ.toNat_vertices (i + 1))
-
--- /--A polygonal line behaves like a path, which is a function from the unit interval to the vector space E.-/
--- instance : FunLike (PolygonalLine U a b)  I  E where
---   coe := fun ϕ ↦ ϕ.toPath.toFun
---   coe_injective' ϕ₁ ϕ₂ h := by
---     dsimp at h; ext x
---     simp only [DFunLike.coe_fn_eq] at h
---     cases ϕ₁; cases ϕ₂; congr
+theorem PolygonalLine.length_toNat_vertices {a b : E} (ϕ : PolygonalLine U a b) :
+    ϕ.length = ∑ i ∈ Finset.range (ϕ.n + 1), dist (ϕ.toNat_vertices i) (ϕ.toNat_vertices (i + 1)) := by
+  sorry
 
 noncomputable
 def pathDistance {U : Set E} (x y : U) : ℝ :=
   ⨅ l : PolygonalLine U (x : E) (y : E), l.length
-
-noncomputable
-def pathDistance' {U : Set E} (x y : U) : ℝ :=
-  ⨅ l : PolygonalLine U (x : E) (y : E), l.length'
 
 instance {U : Set E} (hU : IsConnected U) (hU' : IsOpen U) : MetricSpace U where
   dist := pathDistance
@@ -320,8 +309,8 @@ lemma sublength_sum_geq_distance (a : ℕ → E) :
 
 theorem norm_image_sub_le_of_norm_hasFDerivWithin_le' {f : E → G} {C : ℝ} {s : Set E} {x y : s}
     {f' : E → E →L[ℝ] G} (hf : ∀ x ∈ s, HasFDerivWithinAt f (f' x) s x) (bound : ∀ x ∈ s, ‖f' x‖ ≤ C)
-    (hs : IsConnected s) (hs' : IsOpen s) : ‖f y - f x‖ ≤ C * pathDistance' y x := by
-  simp [pathDistance']
+    (hs : IsConnected s) (hs' : IsOpen s) : ‖f y - f x‖ ≤ C * pathDistance y x := by
+  simp [pathDistance]
   have hC : 0 ≤ C := by
     apply le_trans
     apply norm_nonneg (f' x)
@@ -354,7 +343,7 @@ theorem norm_image_sub_le_of_norm_hasFDerivWithin_le' {f : E → G} {C : ℝ} {s
   have bound : ∀ t ∈ Ico (0 : ℝ) 1, ‖f' (g t) ((x_1.toNat_vertices (i + 1)) - (x_1.toNat_vertices i))‖ ≤ C * ‖(x_1.toNat_vertices (i + 1)) - (x_1.toNat_vertices i)‖ := fun t ht =>
     ContinuousLinearMap.le_of_opNorm_le _ (bound _ <| segm <| Ico_subset_Icc_self ht) _
   simpa [g] using norm_image_sub_le_of_norm_deriv_le_segment_01' hD bound
-  unfold PolygonalLine.length'
+  rw [PolygonalLine.length_toNat_vertices]
   simp[dist_eq_norm, norm_sub_rev]
   rw[Finset.mul_sum]
   exact hC
