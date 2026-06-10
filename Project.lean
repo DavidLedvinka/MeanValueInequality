@@ -8,6 +8,7 @@ public import Mathlib.Analysis.Normed.Operator.Basic
 public import Mathlib.Analysis.Normed.Order.Lattice
 public import Mathlib.Analysis.RCLike.Basic
 public import Mathlib.Data.Int.Star
+public import Mathlib.Analysis.Calculus.MeanValue
 
 section polygonal_line
 
@@ -40,6 +41,38 @@ structure PolygonalLine (U : Set E) (a b : E) where
   segments : ∀ i : Fin (n + 1), ∀ t ∈ Icc (0 : ℝ) 1,
            (1 - t) • vertice i.castSucc + t • vertice i.succ ∈ U
 
+theorem test {a b} (l : PolygonalLine U a b) (i : Fin (l.n + 1)) :
+  MapsTo (AffineMap.lineMap (l.vertice i.castSucc) (l.vertice i.succ))
+    (Icc 0 1 : Set ℝ) U := by
+    simp[AffineMap.lineMap, MapsTo, - Set.mem_Icc]
+    intro t ht
+    convert l.segments i t ht using 1
+    rw[smul_sub, sub_smul]
+    grind [one_smul]
+
+
+
+def PolygonalLine.toNat_vertices {a b : E} (l : PolygonalLine U a b) (i : ℕ) : E :=
+  if h : i < l.n + 2 then l.vertice ⟨i, h⟩ else b
+
+
+theorem test2 {a b} (l : PolygonalLine U a b) (i : ℕ) (hi : i < l.n + 1) :
+  MapsTo (AffineMap.lineMap (l.toNat_vertices i) (l.toNat_vertices (i + 1)))
+    (Icc 0 1 : Set ℝ) U := by
+  unfold MapsTo
+  have hi1: i < l.n +2 := by
+    grind
+  simp [PolygonalLine.toNat_vertices, hi1, hi, - Set.mem_Icc]
+  --simp [AffineMap.lineMap]
+  intro t ht
+  apply test l ⟨i, hi⟩ ht
+
+
+
+
+lemma toNat_eq_vertice1 {a b : E} (l : PolygonalLine U a b): l.toNat_vertices 0 = a := by sorry
+lemma toNat_eq_vertice2 {a b : E} (l : PolygonalLine U a b): l.toNat_vertices (l.n + 1) = b := by sorry
+
 --/lemma PolygonalLine.ver_mem :  := -/
 
 -- /--A path is piecewise affine if it can be divided into pieces of affine maps.-/
@@ -51,8 +84,15 @@ structure PolygonalLine (U : Set E) (a b : E) where
 -- structure PolygonalLine (a b : E) extends Path a b where
 --   piecewise_affine : IsPiecewiseAffine toPath
 
+theorem nonempty_polygonalLine {U : Set E} (hU : IsConnected U) (a b : E) :
+    Nonempty (PolygonalLine U a b) := by
+  sorry
+
 def PolygonalLine.length {a b : E} (ϕ : PolygonalLine U a b) : ℝ :=
   ∑ i ∈ Set.Icc 1 (Fin.last (ϕ.n + 1)), dist (ϕ.vertice i) (ϕ.vertice (i - 1))
+
+def PolygonalLine.length' {a b : E} (ϕ : PolygonalLine U a b) : ℝ :=
+  ∑ i ∈ Finset.range (ϕ.n + 1), dist (ϕ.toNat_vertices i) (ϕ.toNat_vertices (i + 1))
 
 -- /--A polygonal line behaves like a path, which is a function from the unit interval to the vector space E.-/
 -- instance : FunLike (PolygonalLine U a b)  I  E where
@@ -65,6 +105,10 @@ def PolygonalLine.length {a b : E} (ϕ : PolygonalLine U a b) : ℝ :=
 noncomputable
 def pathDistance {U : Set E} (x y : U) : ℝ :=
   ⨅ l : PolygonalLine U (x : E) (y : E), l.length
+
+noncomputable
+def pathDistance' {U : Set E} (x y : U) : ℝ :=
+  ⨅ l : PolygonalLine U (x : E) (y : E), l.length'
 
 instance {U : Set E} (hU : IsConnected U) (hU' : IsOpen U) : MetricSpace U where
   dist := pathDistance
@@ -311,7 +355,63 @@ Convex.norm_image_sub_le_of_norm_hasFDerivWithin_le.{u_1, u_3, u_4} {E : Type u_
 
 variable {G : Type*} [NormedAddCommGroup G] [NormedSpace ℝ G]
 
+#check Convex.norm_image_sub_le_of_norm_hasFDerivWithin_le
+
+lemma sublength_sum_geq_distance (a : ℕ → E) :
+  ∀ n : ℕ, ‖a n - a 0‖ ≤ ∑ i ∈ Finset.range n, ‖a (i+1) - a i‖:= by
+    intro n
+    induction n with
+    | zero =>
+      simp
+    | succ k hk =>
+      calc
+        ‖a (k + 1) - a 0‖ = ‖(a (k + 1) - a k) + (a k - a 0)‖ := by
+          simp
+        _ ≤ ‖(a (k + 1) - a k)‖ + ‖(a k - a 0)‖ :=
+          norm_add_le _ _
+        _ ≤ ‖a (k + 1) - a k‖ + ∑ i ∈ Finset.range k, ‖a (i + 1) - a i‖ :=
+          add_le_add_right hk _
+        _ = ∑ i ∈ Finset.range (k + 1), ‖a (i + 1) - a i‖ := by
+          rw [Finset.sum_range_succ]; rw[add_comm]
+
+
+
 theorem norm_image_sub_le_of_norm_hasFDerivWithin_le' {f : E → G} {C : ℝ} {s : Set E} {x y : s}
     {f' : E → E →L[ℝ] G} (hf : ∀ x ∈ s, HasFDerivWithinAt f (f' x) s x) (bound : ∀ x ∈ s, ‖f' x‖ ≤ C)
-    (hs : IsConnected s) (hs' : IsOpen s) : ‖f y - f x‖ ≤ C * pathDistance y x := by
-  sorry
+    (hs : IsConnected s) (hs' : IsOpen s) : ‖f y - f x‖ ≤ C * pathDistance' y x := by
+  simp [pathDistance']
+  have hC : 0 ≤ C := by
+    apply le_trans
+    apply norm_nonneg (f' x)
+    apply bound
+    simp
+  rw[Real.mul_iInf_of_nonneg]
+  have : Nonempty (PolygonalLine s y x) := nonempty_polygonalLine hs y x
+  apply le_ciInf
+  intro x_1
+  nth_rw 1 [← toNat_eq_vertice1 x_1]
+  nth_rw 2 [← toNat_eq_vertice2 x_1]
+  conv => enter [1, 1, 1]; change (f ∘ x_1.toNat_vertices) _
+  conv => enter [1, 1, 2]; change (f ∘ x_1.toNat_vertices) _
+  grw [norm_sub_rev, sublength_sum_geq_distance]
+  apply le_trans
+  apply Finset.sum_le_sum
+  intro i hi
+  simp
+  set g := (AffineMap.lineMap (x_1.toNat_vertices i) (x_1.toNat_vertices (i + 1)) : ℝ → E)
+  have segm : MapsTo g (Icc 0 1 : Set ℝ) s := by
+    unfold g
+    apply test2
+    grind
+
+  have hD : ∀ t ∈ Icc (0 : ℝ) 1,
+      HasDerivWithinAt (f ∘ g) (f' (g t) ((x_1.toNat_vertices (i + 1)) - (x_1.toNat_vertices i))) (Icc 0 1) t := fun t ht => by
+    simpa using ((hf (g t) (segm ht)).restrictScalars ℝ).comp_hasDerivWithinAt _
+      AffineMap.hasDerivWithinAt_lineMap segm
+  have bound : ∀ t ∈ Ico (0 : ℝ) 1, ‖f' (g t) ((x_1.toNat_vertices (i + 1)) - (x_1.toNat_vertices i))‖ ≤ C * ‖(x_1.toNat_vertices (i + 1)) - (x_1.toNat_vertices i)‖ := fun t ht =>
+    ContinuousLinearMap.le_of_opNorm_le _ (bound _ <| segm <| Ico_subset_Icc_self ht) _
+  simpa [g] using norm_image_sub_le_of_norm_deriv_le_segment_01' hD bound
+  unfold PolygonalLine.length'
+  simp[dist_eq_norm, norm_sub_rev]
+  rw[Finset.mul_sum]
+  exact hC
