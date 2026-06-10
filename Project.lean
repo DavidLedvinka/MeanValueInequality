@@ -304,45 +304,43 @@ lemma polygonal_connected_of_connected (U : Set E) (Uopen : IsOpen U)  :
       apply (V'_eq_V ⟨a, au⟩).mp
       rw [V_def]; dsimp; constructor
       have ball : ∃ ε > 0, Metric.ball a ε ⊆ U := Metric.isOpen_iff.mp Uopen a au
-      rcases ball with ⟨ε, ⟨εpos, ball⟩⟩
-      have : ((Metric.ball a ε) ∩ V).Nonempty := mem_closure_iff.mp aV (Metric.ball a ε) Metric.isOpen_ball (Metric.mem_ball_self εpos)
-      rw [Set.nonempty_def] at this
-      rcases this with ⟨b, ⟨binball, bV⟩⟩
-      have polygonalpath₁ : ∃ ϕ₁ : PolygonalLine x b, Set.range ϕ₁ ⊆ U := by rw [V_def] at bV; dsimp at bV; exact bV.2
-      have polygonalpath₂ : ∃ ϕ₂ : PolygonalLine b a, Set.range ϕ₂ ⊆ U := by
-        use lineSegment b a
-        rw [segment_range_eq_segment b a]
-        apply subset_trans (convex_iff_segment_subset.mp (convex_ball a ε) binball (Metric.mem_ball_self εpos)) ball
-      rcases polygonalpath₁ with ⟨ϕ₁, hϕ₁⟩
-      rcases polygonalpath₂ with ⟨ϕ₂, hϕ₂⟩
-      use ϕ₁.trans ϕ₂
-      exact polygonal_line_trans_subset hϕ₁ hϕ₂
+      have : Nonempty (PolygonalLine U x a) := by
+        rcases ball with ⟨ε, ⟨εpos, ball⟩⟩
+        have : ((Metric.ball a ε) ∩ V).Nonempty := mem_closure_iff.mp aV (Metric.ball a ε) Metric.isOpen_ball (Metric.mem_ball_self εpos)
+        rw [Set.nonempty_def] at this
+        rcases this with ⟨b, ⟨binball, bV⟩⟩
+        have ϕ₁ : PolygonalLine U x b := by rw [V_def] at bV; dsimp at bV; exact Classical.choice bV
+        have ϕ₂ : PolygonalLine U b a := by
+          refine (lineSegment b a) ?_
+          apply subset_trans (convex_iff_segment_subset.mp (convex_ball a ε) binball (Metric.mem_ball_self εpos)) ball
+        exact ⟨ϕ₁.trans ϕ₂⟩
+      apply Classical.choice this
     apply IsOpen.preimage continuous_subtype_val
     apply Metric.isOpen_iff.mpr
     rintro a aV
     rw [V_def] at aV
-    rcases aV with ⟨aU, ⟨ϕ₁, hϕ₁⟩⟩
-    have : ∃ ε > 0, Metric.ball a ε ⊆ U := Metric.isOpen_iff.mp Uopen a aU
+    have ϕ : PolygonalLine U x a := Classical.choice aV
+    have : ∃ ε > 0, Metric.ball a ε ⊆ U := by
+      refine Metric.isOpen_iff.mp Uopen a ?_
+      rw [← ϕ.target]; apply ϕ.ver_mem
     rcases this with ⟨ε, ⟨εpos, ballinU⟩⟩
     use ε, εpos; rintro b binball; rw [V_def]
-    use ballinU binball
-    have : Set.range ↑(lineSegment a b) ⊆ Metric.ball a ε := by
-      rw [segment_range_eq_segment]
+    have : segment ℝ a b ⊆ Metric.ball a ε := by
       apply convex_iff_segment_subset.mp (convex_ball _ _) (Metric.mem_ball_self _) binball
       exact εpos
-    have hϕ₂ : range ↑(lineSegment a b) ⊆ U := by intros x h; apply ballinU; apply this; apply h
-    use ϕ₁.trans (lineSegment a b)
-    exact polygonal_line_trans_subset hϕ₁ hϕ₂
+    have hϕ₂ : segment ℝ a b ⊆ U := by intros x h; apply ballinU; apply this; apply h
+    exact ⟨ϕ.trans (lineSegment a b hϕ₂)⟩
   have : V' = Set.univ := by
     rcases ((connectedSpace_iff_clopen.mp Uconnected).2 V' V'clopen)
     · contradiction
     assumption
   have : V = U := by
     ext x₀; constructor
-    · rw [V_def]; dsimp; rintro ⟨_, _⟩; assumption
+    · rw [V_def]; intro hx₀; apply Classical.choice at hx₀
+      rw [← hx₀.target]; apply hx₀.ver_mem
     intro hx₀; rw [V'_eq_V ⟨x₀, hx₀⟩, this]; trivial
   rw [← this, V_def] at yu
-  rcases yu; assumption
+  exact yu
 
 -- #check Convex.norm_image_sub_le_of_norm_hasFDerivWithin_le
 
