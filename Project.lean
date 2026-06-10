@@ -73,7 +73,7 @@ noncomputable
 def pathDistance {U : Set E} (x y : U) : ℝ :=
   ⨅ l : PolygonalLine U (x : E) (y : E), l.length
 
-instance {U : Set E} (hU : IsConnected U) (hU' : IsOpen U) : MetricSpace U where
+noncomputable instance {U : Set E} (hU : IsConnected U) (hU' : IsOpen U) : MetricSpace U where
   dist := pathDistance
   dist_self := sorry
   dist_comm := sorry
@@ -83,7 +83,14 @@ instance {U : Set E} (hU : IsConnected U) (hU' : IsOpen U) : MetricSpace U where
 #check IsConnected.isPreconnected
 #check connectedSpace_iff_clopen
 
--- /--The trivial path from x to itself is a polygonal line.-/
+/--The trivial path from x to itself is a polygonal line.-/
+def constantPolygonalLine (x : E) (hu : x ∈ U) : PolygonalLine U x x where
+  n := 0
+  vertice := fun _ ↦ x
+  source := rfl
+  target := rfl
+  segments := by intros; rw [← add_smul]; simpa
+
 -- def constantPolygonalLine (x : E) : PolygonalLine x x where
 --   toFun := fun _ ↦ x
 --   source' := rfl
@@ -93,7 +100,21 @@ instance {U : Set E} (hU : IsConnected U) (hU' : IsOpen U) : MetricSpace U where
 --     refine ⟨rfl, rfl, ?_⟩
 --     use fun _ ↦ AffineMap.const ℝ ℝ x; intros; dsimp
 
--- /--The segment connecting x and y is a polygonal line.-/
+/--The segment connecting x and y is a polygonal line.-/
+def lineSegment (x y : E) (hu : segment ℝ x y ⊆ U) : PolygonalLine U x y where
+  n := 0
+  vertice := Fin.cases x (fun _ ↦ y)
+  source := rfl
+  target := rfl
+  segments := by
+    intro i t trange; rcases i with ⟨i, ieq0⟩
+    have : i = 0 := Nat.lt_one_iff.mp ieq0
+    simp [this]
+    rw [← Fin.succ_zero_eq_one, Fin.cases_succ]
+    apply hu
+    simp [segment]
+    exact ⟨1 - t, by simp [trange.2], t, trange.1, by norm_num, rfl⟩
+
 -- def lineSegment (x y : E) : PolygonalLine x y where
 --   toFun := fun ⟨t, _⟩ ↦ t • y + (1 - t) • x
 --   source' := by simp
@@ -256,21 +277,18 @@ end
 
 /--A subset of a normed vector space is connected by polygonal lines if it is connected.-/
 lemma polygonal_connected_of_connected (U : Set E) (Uopen : IsOpen U)  :
-  IsConnected U → ∀ x y : E, x ∈ U → y ∈ U → ∃ ϕ : PolygonalLine x y, Set.range ϕ ⊆ U := by
-  intro Uconnected x y xu yu
+  IsConnected U → ∀ x y : E, x ∈ U ∧ y ∈ U → Nonempty (PolygonalLine U x y) := by
+  intro Uconnected x y ⟨xu, yu⟩
   have Uconnected : ConnectedSpace U := by
     rw [isConnected_iff_connectedSpace] at Uconnected
     exact Uconnected
-  set V : Set E := {u ∈ U | ∃ l : PolygonalLine x u, Set.range l ⊆ U} with V_def
+  set V : Set E := {u | Nonempty (PolygonalLine U x u)} with V_def
   set V' : Set U := Subtype.val ⁻¹' V with V'_def
   have V'_eq_V : ∀ x : U, x.1 ∈ V ↔ x ∈ V' := by simp [V'_def]
   have : x ∈ V := by
     simp [V_def]
-    constructor; exact xu
-    use constantPolygonalLine x
-    dsimp [constantPolygonalLine, Set.range]
-    rintro a ⟨_, h⟩;
-    change x = a at h; rwa [← h]
+    constructor
+    exact constantPolygonalLine x xu
   -- have Vnonempty : Nonempty V := by simp; use x
   have V'nonempty : V' ≠ ∅ := by
     rw [V'_eq_V ⟨x, xu⟩] at this
@@ -284,7 +302,7 @@ lemma polygonal_connected_of_connected (U : Set E) (Uopen : IsOpen U)  :
         rintro v vv
         apply (V'_eq_V v).mpr; assumption
       apply (V'_eq_V ⟨a, au⟩).mp
-      rw [V_def]; dsimp; constructor; exact au
+      rw [V_def]; dsimp; constructor
       have ball : ∃ ε > 0, Metric.ball a ε ⊆ U := Metric.isOpen_iff.mp Uopen a au
       rcases ball with ⟨ε, ⟨εpos, ball⟩⟩
       have : ((Metric.ball a ε) ∩ V).Nonempty := mem_closure_iff.mp aV (Metric.ball a ε) Metric.isOpen_ball (Metric.mem_ball_self εpos)
