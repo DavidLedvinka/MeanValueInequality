@@ -209,27 +209,50 @@ noncomputable section
 --   target' := by norm_num
 --   piecewise_affine := piecewise_affine_trans φ.piecewise_affine φ'.piecewise_affine
 
+@[simp]
+def glued_append {m n : ℕ} (f : Fin (n + 2) → E) (g : Fin (m + 2) → E):
+    Fin (n + m + 2 + 1) → E := by
+  intro i
+  by_cases! hi : i.1 ≤ n + 1
+  exact (f ⟨i.1, Nat.lt_succ_of_le hi⟩)
+  exact (g ⟨i.1 - (n + 1), by omega⟩)
+
 @[trans]
-def PolygonalLine.trans {x y z : E} (φ : PolygonalLine U x y) (φ' : PolygonalLine U y z) : PolygonalLine U x z where
-  n := sorry
-  vertice := sorry
-  source := sorry
-  target := sorry
-  segments := sorry
+def PolygonalLine.trans {x y z : E} (p : PolygonalLine U x y) (p' : PolygonalLine U y z) : PolygonalLine U x z where
+  n := p.n + p'.n + 1
+  vertice := glued_append p.vertice p'.vertice
+  source := by simp; exact p.source
+  target := by simp; convert p'.target using 1; congr; rw [add_assoc]; apply (Nat.add_sub_cancel_left)
+  segments := by
+    intro i t trange
+    dsimp; split_ifs with h1 h2 h2
+    · refine (p.segments ⟨i, ?_⟩ t trange)
+      omega
+    · push Not at h2
+      have : p.n + 1 = i := le_antisymm (Nat.le_of_lt_succ h2) h1
+      simp [this]; simp [← this]
+      show (1 - t) • p.vertice (Fin.last (p.n + 1)) + t • p'.vertice 1 ∈ U
+      simp [p.target, ← p'.source]
+      exact (p'.segments 0 t trange)
+    · linarith
+    push Not at h1 h2
+    convert (p'.segments ⟨i - (p.n + 1), _⟩ t trange)
+    dsimp; omega
+    omega
 
 end
 
-/--The head-to-tail composition of two polygonal lines contained in a subset is still contained in that subset.-/
-lemma polygonal_line_trans_subset {x y z : E} {U : Set E} {φ : PolygonalLine x y} {φ' : PolygonalLine y z} (hφ : Set.range ↑φ ⊆ U) (hφ' : Set.range ↑φ' ⊆ U) :
-  Set.range ↑(φ.trans φ') ⊆ U := by
-      rintro w ⟨t, h⟩; simp [PolygonalLine.trans] at h
-      change (ite _ _ _) = w at h; split_ifs at h with range_t
-      · rw [← h]
-        have : φ.extend (2 * ↑t) ∈ range ↑φ := ⟨⟨2 * ↑t, ⟨by linarith [t.2.1], by linarith⟩⟩, by rw [φ.extend_apply ⟨by linarith [t.2.1], by linarith⟩]; rfl⟩
-        exact hφ this
-      rw [← h]
-      have : φ'.extend (2 * ↑t - 1) ∈ range ↑φ' := ⟨⟨2 * ↑t - 1, ⟨by linarith, by linarith [t.2.2]⟩⟩, by rw [φ'.extend_apply ⟨by linarith, by linarith [t.2.2]⟩]; rfl⟩
-      exact hφ' this
+-- /--The head-to-tail composition of two polygonal lines contained in a subset is still contained in that subset.-/
+-- lemma polygonal_line_trans_subset {x y z : E} {U : Set E} {φ : PolygonalLine x y} {φ' : PolygonalLine y z} (hφ : Set.range ↑φ ⊆ U) (hφ' : Set.range ↑φ' ⊆ U) :
+--   Set.range ↑(φ.trans φ') ⊆ U := by
+--       rintro w ⟨t, h⟩; simp [PolygonalLine.trans] at h
+--       change (ite _ _ _) = w at h; split_ifs at h with range_t
+--       · rw [← h]
+--         have : φ.extend (2 * ↑t) ∈ range ↑φ := ⟨⟨2 * ↑t, ⟨by linarith [t.2.1], by linarith⟩⟩, by rw [φ.extend_apply ⟨by linarith [t.2.1], by linarith⟩]; rfl⟩
+--         exact hφ this
+--       rw [← h]
+--       have : φ'.extend (2 * ↑t - 1) ∈ range ↑φ' := ⟨⟨2 * ↑t - 1, ⟨by linarith, by linarith [t.2.2]⟩⟩, by rw [φ'.extend_apply ⟨by linarith, by linarith [t.2.2]⟩]; rfl⟩
+--       exact hφ' this
 
 /--A subset of a normed vector space is connected by polygonal lines if it is connected.-/
 lemma polygonal_connected_of_connected (U : Set E) (Uopen : IsOpen U)  :
