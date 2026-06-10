@@ -62,13 +62,37 @@ def PolygonalLine.length {a b : E} (ϕ : PolygonalLine U a b) : ℝ :=
 --     simp only [DFunLike.coe_fn_eq] at h
 --     cases ϕ₁; cases ϕ₂; congr
 
+lemma PolygonalLine.zero_le_length {a b : E} (ϕ : PolygonalLine U a b) : 0 ≤ ϕ.length := by
+  unfold length
+  apply Finset.sum_nonneg
+  intro i h
+  apply dist_nonneg
+
 noncomputable
 def pathDistance {U : Set E} (x y : U) : ℝ :=
   ⨅ l : PolygonalLine U (x : E) (y : E), l.length
 
+lemma PolygonalLine.zero_le_pathDistance {U : Set E} {a b : U}: 0 ≤ pathDistance a b := by
+  unfold pathDistance
+  apply Real.iInf_nonneg
+  intro i
+  apply PolygonalLine.zero_le_length
+
+lemma constantPolygonalLine.zero_eq_length {x} (hU : x ∈ U) :
+    0 = (constantPolygonalLine x hU).length := by
+      unfold PolygonalLine.length
+      simp [constantPolygonalLine]
+
 instance {U : Set E} (hU : IsConnected U) (hU' : IsOpen U) : MetricSpace U where
   dist := pathDistance
-  dist_self := sorry
+  dist_self := by
+    intro x
+    apply eq_of_le_of_ge
+    unfold pathDistance
+    · calc
+      pathDistance ≤ (constantPolygonalLine x hU).length
+
+    apply PolygonalLine.zero_le_pathDistance
   dist_comm := sorry
   eq_of_dist_eq_zero := sorry
   dist_triangle := sorry
