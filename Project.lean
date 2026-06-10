@@ -1,8 +1,17 @@
-import Mathlib
+module
+
+public import Mathlib.Algebra.Order.Ring.Star
+public import Mathlib.AlgebraicTopology.SimplexCategory.Basic
+public import Mathlib.Analysis.Calculus.FDeriv.Defs
+public import Mathlib.Analysis.Normed.Group.AddTorsor
+public import Mathlib.Analysis.Normed.Operator.Basic
+public import Mathlib.Analysis.Normed.Order.Lattice
+public import Mathlib.Analysis.RCLike.Basic
+public import Mathlib.Data.Int.Star
 
 section polygonal_line
 
-variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] (a b: E)
+variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] (a b : E)
 open Set unitInterval
 
 --/-- A line segment in a vector space E can be written as the sum of a linear map and a constant.-/
@@ -28,12 +37,14 @@ open Set unitInterval
 
 /--A path is piecewise affine if it can be divided into pieces of affine maps.-/
 structure IsPiecewiseAffine {a b : E} (ϕ : Path a b) : Prop where
-  piecewise_affine : ∃ (n : ℕ), n > 0 ∧ ∃ (ι : Fin (n + 1) → I), ι 0 = 0 ∧ ι (Fin.last n) = 1 ∧ ∃ l : Fin n → ℝ →ᵃ[ℝ] E, ∀ i : Fin n, ∀ t ∈ Set.Icc (ι ⟨i, by linarith [i.2]⟩) (ι i.succ), ϕ t = (l i) t
+  piecewise_affine : ∃ (n : ℕ+), ∃ (ι : Fin (n + 1) → I), ι 0 = 0 ∧ ι (Fin.last n) = 1 ∧ ∃ l : Fin n → ℝ →ᵃ[ℝ] E, ∀ i : Fin n, ∀ t ∈ Set.Icc (ι ⟨i, by linarith [i.2]⟩) (ι i.succ), ϕ t = (l i) t
 
 /--A polygonal line is a path that is piecewise affine.-/
 @[ext]
 structure PolygonalLine (a b : E) extends Path a b where
   piecewise_affine : IsPiecewiseAffine toPath
+
+def PolygonalLine.length {a b : E} (ϕ : PolygonalLine a b) : ℝ := sorry
 
 /--A polygonal line behaves like a path, which is a function from the unit interval to the vector space E.-/
 instance : FunLike (PolygonalLine a b)  I  E where
@@ -43,8 +54,27 @@ instance : FunLike (PolygonalLine a b)  I  E where
     simp only [DFunLike.coe_fn_eq] at h
     cases ϕ₁; cases ϕ₂; congr
 
+noncomputable
+def pathDistance {U : Set E} (x y : U) : ℝ :=
+  ⨅ l : {l : PolygonalLine (x : E) (y : E) // range l ⊆ U}, l.1.length
+
 #check IsConnected.isPreconnected
 #check connectedSpace_iff_clopen
+
+/--The reverse of a polygonal line is a polygonal line.-/
+def PolygonalLine.reverse {a b : E} (ϕ : PolygonalLine a b) : PolygonalLine b a where
+  toFun := fun t ↦ ϕ.toPath.extend (1 - t)
+  source' := by simp
+  target' := by simp
+  piecewise_affine := sorry
+
+/--The length of a reverse polygonal line is the same as the length of the original line-/
+lemma PolygonalLine.reverse_length {a b : E} (ϕ : PolygonalLine a b) :
+  ϕ.reverse.length = ϕ.length := sorry
+
+/-- The length of a polygonal line is non-negative. -/
+lemma PolygonalLine.length_nonneg {a b : E} (ϕ : PolygonalLine a b) :
+  0 ≤ ϕ.length := sorry
 
 /--The trivial path from x to itself is a polygonal line.-/
 def constantPolygonalLine (x : E) : PolygonalLine x x where
@@ -55,6 +85,10 @@ def constantPolygonalLine (x : E) : PolygonalLine x x where
     use 1; dsimp; refine ⟨by norm_num, ?_⟩; use Fin.cases 0 (fun _ ↦ 1)
     refine ⟨rfl, rfl, ?_⟩
     use fun _ ↦ AffineMap.const ℝ ℝ x; intros; dsimp
+
+/-- A constant polygonal line has length zero. -/
+lemma constantPolygonalLine_length (x : E) :
+  (constantPolygonalLine x).length = 0 := sorry
 
 /--The segment connecting x and y is a polygonal line.-/
 def lineSegment (x y : E) : PolygonalLine x y where
@@ -258,13 +292,59 @@ lemma polygonal_connected_of_connected (U : Set E) (Uopen : IsOpen U)  :
   rw [← this, V_def] at yu
   rcases yu; assumption
 
+/-- The length of the concatenation of two polygonal lines is equal to the sum of their lengths. -/
+lemma PolygonalLine.trans_length {x y z : E} (ϕ : PolygonalLine x y) (ϕ' : PolygonalLine y z) :
+    (ϕ.trans ϕ').length = ϕ.length + ϕ'.length := sorry
+
+instance {U : Set E} (hU : IsConnected U) (hU' : IsOpen U) : MetricSpace U where
+  dist := pathDistance
+  dist_self := sorry
+  dist_comm := sorry
+  eq_of_dist_eq_zero := sorry
+  dist_triangle := sorry
+
+-- #check Convex.norm_image_sub_le_of_norm_hasFDerivWithin_le
+
+/-
+Convex.norm_image_sub_le_of_norm_hasFDerivWithin_le.{u_1, u_3, u_4} {E : Type u_1}
+  [NormedAddCommGroup E] [NormedSpace ℝ E] {𝕜 : Type u_3} {G : Type u_4} [NontriviallyNormedField 𝕜]
+  [IsRCLikeNormedField 𝕜] [NormedSpace 𝕜 E] [NormedAddCommGroup G] [NormedSpace 𝕜 G] {f : E → G}
+  {C : ℝ} {s : Set E} {x y : E} {f' : E → E →L[𝕜] G} (hf : ∀ x ∈ s, HasFDerivWithinAt f (f' x) s x)
+  (bound : ∀ x ∈ s, ‖f' x‖ ≤ C) (hs : Convex ℝ s) (xs : x ∈ s)
+  (ys : y ∈ s) : ‖f y - f x‖ ≤ C * ‖y - x‖
+-/
+
+/- variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] (a b : E) -/
+
+variable {G : Type*} [NormedAddCommGroup G] [NormedSpace ℝ G]
+
+theorem norm_image_sub_le_of_norm_hasFDerivWithin_le' {f : E → G} {C : ℝ} {s : Set E} {x y : s}
+    {f' : E → E →L[ℝ] G} (hf : ∀ x ∈ s, HasFDerivWithinAt f (f' x) s x) (bound : ∀ x ∈ s, ‖f' x‖ ≤ C)
+    (hs : IsConnected s) (hs' : IsOpen s) : ‖f y - f x‖ ≤ C * pathDistance y x := by
+  sorry
+
 /--The sum of distances between points in a finite sequence is at least the distance between the first and last points.-/
-lemma sublength_sum_geq_distance (a : ℕ → E):
-∀ n : ℕ, ‖a n - a 0‖ ≤ ∑ i in Finset.range n, ‖a (i+1) - a i‖ := by
-induction n with d hd
+lemma sublength_sum_geq_distance (a : ℕ → E) :
+  ∀ n : ℕ, ‖a n - a 0‖ ≤ ∑ i ∈ Finset.range n, ‖a (i+1) - a i‖:= by
+    intro n
+    induction n with
+    | zero =>
+      simp
+    | succ k hk =>
+      calc
+        ‖a (k + 1) - a 0‖ = ‖(a (k + 1) - a k) + (a k - a 0)‖ := by
+          simp
+        _ ≤ ‖(a (k + 1) - a k)‖ + ‖(a k - a 0)‖ :=
+          norm_add_le _ _
+        _ ≤ ‖a (k + 1) - a k‖ + ∑ i ∈ Finset.range k, ‖a (i + 1) - a i‖ :=
+          add_le_add_right hk _
+        _ = ∑ i ∈ Finset.range (k + 1), ‖a (i + 1) - a i‖ := by
+          rw [Finset.sum_range_succ]; rw[add_comm]
 
 
 
 
 /--The length of a polygonal line is at least the length of the interval over its start and end points.-/
-lemma polygonal_length_geq_distance (x y : E) (PolygonalLine x y):
+lemma polygonal_length_geq_distance {a b : E} (ϕ : PolygonalLine a b) :
+  ‖b - a‖ ≤ ϕ.length := by
+  sorry
