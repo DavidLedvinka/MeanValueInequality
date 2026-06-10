@@ -40,7 +40,7 @@ structure PolygonalLine (U : Set E) (a b : E) where
   segments : ∀ i : Fin (n + 1), ∀ t ∈ Icc (0 : ℝ) 1,
            (1 - t) • vertice i.castSucc + t • vertice i.succ ∈ U
 
-lemma PolygonalLine.ver_mem :  :=
+--/lemma PolygonalLine.ver_mem :  := -/
 
 -- /--A path is piecewise affine if it can be divided into pieces of affine maps.-/
 -- structure IsPiecewiseAffine {a b : E} (ϕ : Path a b) : Prop where
@@ -51,7 +51,8 @@ lemma PolygonalLine.ver_mem :  :=
 -- structure PolygonalLine (a b : E) extends Path a b where
 --   piecewise_affine : IsPiecewiseAffine toPath
 
-def PolygonalLine.length {a b : E} (ϕ : PolygonalLine U a b) : ℝ := sorry
+def PolygonalLine.length {a b : E} (ϕ : PolygonalLine U a b) : ℝ :=
+  ∑ i ∈ Set.Icc 1 (Fin.last (ϕ.n + 1)), dist (ϕ.vertice i) (ϕ.vertice (i - 1))
 
 -- /--A polygonal line behaves like a path, which is a function from the unit interval to the vector space E.-/
 -- instance : FunLike (PolygonalLine U a b)  I  E where
@@ -63,7 +64,7 @@ def PolygonalLine.length {a b : E} (ϕ : PolygonalLine U a b) : ℝ := sorry
 
 noncomputable
 def pathDistance {U : Set E} (x y : U) : ℝ :=
-  ⨅ l : {l : PolygonalLine (x : E) (y : E) // range l ⊆ U}, l.1.length
+  ⨅ l : PolygonalLine U (x : E) (y : E), l.length
 
 instance {U : Set E} (hU : IsConnected U) (hU' : IsOpen U) : MetricSpace U where
   dist := pathDistance
