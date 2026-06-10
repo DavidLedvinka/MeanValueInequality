@@ -70,8 +70,18 @@ theorem test2 {a b} (l : PolygonalLine U a b) (i : ℕ) (hi : i < l.n + 1) :
 
 
 
-lemma toNat_eq_vertice1 {a b : E} (l : PolygonalLine U a b): l.toNat_vertices 0 = a := by sorry
-lemma toNat_eq_vertice2 {a b : E} (l : PolygonalLine U a b): l.toNat_vertices (l.n + 1) = b := by sorry
+lemma toNat_eq_vertice1 {a b : E} (l : PolygonalLine U a b): l.toNat_vertices 0 = a := by
+  have h : 0 < l.n + 2 := by
+    grind
+  unfold PolygonalLine.toNat_vertices
+  simp [h, l.source]
+
+lemma toNat_eq_vertice2 {a b : E} (l : PolygonalLine U a b): l.toNat_vertices (l.n + 1) = b := by
+  have h : l.n + 1 < l.n + 2 := by
+    grind
+  unfold PolygonalLine.toNat_vertices
+  simp [h]
+  apply l.target
 
 --/lemma PolygonalLine.ver_mem :  := -/
 
@@ -270,75 +280,7 @@ lemma polygonal_line_trans_subset {x y z : E} {U : Set E} {φ : PolygonalLine x 
 
 /--A subset of a normed vector space is connected by polygonal lines if it is connected.-/
 lemma polygonal_connected_of_connected (U : Set E) (Uopen : IsOpen U)  :
-  IsConnected U → ∀ x y : E, x ∈ U → y ∈ U → ∃ ϕ : PolygonalLine x y, Set.range ϕ ⊆ U := by
-  intro Uconnected x y xu yu
-  have Uconnected : ConnectedSpace U := by
-    rw [isConnected_iff_connectedSpace] at Uconnected
-    exact Uconnected
-  set V : Set E := {u ∈ U | ∃ l : PolygonalLine x u, Set.range l ⊆ U} with V_def
-  set V' : Set U := Subtype.val ⁻¹' V with V'_def
-  have V'_eq_V : ∀ x : U, x.1 ∈ V ↔ x ∈ V' := by simp [V'_def]
-  have : x ∈ V := by
-    simp [V_def]
-    constructor; exact xu
-    use constantPolygonalLine x
-    dsimp [constantPolygonalLine, Set.range]
-    rintro a ⟨_, h⟩;
-    change x = a at h; rwa [← h]
-  -- have Vnonempty : Nonempty V := by simp; use x
-  have V'nonempty : V' ≠ ∅ := by
-    rw [V'_eq_V ⟨x, xu⟩] at this
-    contrapose! this; rw [this]; exact notMem_empty _
-  have V'clopen : IsClopen V' := by
-    constructor
-    · apply closure_subset_iff_isClosed.mp
-      rintro ⟨a, au⟩ aV'
-      have aV : a ∈ closure V := by
-        apply map_mem_closure continuous_subtype_val aV'
-        rintro v vv
-        apply (V'_eq_V v).mpr; assumption
-      apply (V'_eq_V ⟨a, au⟩).mp
-      rw [V_def]; dsimp; constructor; exact au
-      have ball : ∃ ε > 0, Metric.ball a ε ⊆ U := Metric.isOpen_iff.mp Uopen a au
-      rcases ball with ⟨ε, ⟨εpos, ball⟩⟩
-      have : ((Metric.ball a ε) ∩ V).Nonempty := mem_closure_iff.mp aV (Metric.ball a ε) Metric.isOpen_ball (Metric.mem_ball_self εpos)
-      rw [Set.nonempty_def] at this
-      rcases this with ⟨b, ⟨binball, bV⟩⟩
-      have polygonalpath₁ : ∃ ϕ₁ : PolygonalLine x b, Set.range ϕ₁ ⊆ U := by rw [V_def] at bV; dsimp at bV; exact bV.2
-      have polygonalpath₂ : ∃ ϕ₂ : PolygonalLine b a, Set.range ϕ₂ ⊆ U := by
-        use lineSegment b a
-        rw [segment_range_eq_segment b a]
-        apply subset_trans (convex_iff_segment_subset.mp (convex_ball a ε) binball (Metric.mem_ball_self εpos)) ball
-      rcases polygonalpath₁ with ⟨ϕ₁, hϕ₁⟩
-      rcases polygonalpath₂ with ⟨ϕ₂, hϕ₂⟩
-      use ϕ₁.trans ϕ₂
-      exact polygonal_line_trans_subset hϕ₁ hϕ₂
-    apply IsOpen.preimage continuous_subtype_val
-    apply Metric.isOpen_iff.mpr
-    rintro a aV
-    rw [V_def] at aV
-    rcases aV with ⟨aU, ⟨ϕ₁, hϕ₁⟩⟩
-    have : ∃ ε > 0, Metric.ball a ε ⊆ U := Metric.isOpen_iff.mp Uopen a aU
-    rcases this with ⟨ε, ⟨εpos, ballinU⟩⟩
-    use ε, εpos; rintro b binball; rw [V_def]
-    use ballinU binball
-    have : Set.range ↑(lineSegment a b) ⊆ Metric.ball a ε := by
-      rw [segment_range_eq_segment]
-      apply convex_iff_segment_subset.mp (convex_ball _ _) (Metric.mem_ball_self _) binball
-      exact εpos
-    have hϕ₂ : range ↑(lineSegment a b) ⊆ U := by intros x h; apply ballinU; apply this; apply h
-    use ϕ₁.trans (lineSegment a b)
-    exact polygonal_line_trans_subset hϕ₁ hϕ₂
-  have : V' = Set.univ := by
-    rcases ((connectedSpace_iff_clopen.mp Uconnected).2 V' V'clopen)
-    · contradiction
-    assumption
-  have : V = U := by
-    ext x₀; constructor
-    · rw [V_def]; dsimp; rintro ⟨_, _⟩; assumption
-    intro hx₀; rw [V'_eq_V ⟨x₀, hx₀⟩, this]; trivial
-  rw [← this, V_def] at yu
-  rcases yu; assumption
+  IsConnected U → ∀ x y : E, x ∈ U ∧ y ∈ U → Nonempty (PolygonalLine U x y) := by sorry
 
 -- #check Convex.norm_image_sub_le_of_norm_hasFDerivWithin_le
 
@@ -386,7 +328,8 @@ theorem norm_image_sub_le_of_norm_hasFDerivWithin_le' {f : E → G} {C : ℝ} {s
     apply bound
     simp
   rw[Real.mul_iInf_of_nonneg]
-  have : Nonempty (PolygonalLine s y x) := nonempty_polygonalLine hs y x
+  have : Nonempty (PolygonalLine s y x) :=
+    polygonal_connected_of_connected s hs' hs y x (by grind)
   apply le_ciInf
   intro x_1
   nth_rw 1 [← toNat_eq_vertice1 x_1]
