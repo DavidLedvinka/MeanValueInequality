@@ -40,7 +40,12 @@ structure PolygonalLine (U : Set E) (a b : E) where
   segments : ∀ i : Fin (n + 1), ∀ t ∈ Icc (0 : ℝ) 1,
            (1 - t) • vertice i.castSucc + t • vertice i.succ ∈ U
 
-lemma PolygonalLine.ver_mem :  :=
+lemma PolygonalLine.ver_mem (p : PolygonalLine U a b) (i : Fin (p.n + 2)) :
+    p.vertice i ∈ U := by
+  cases i using Fin.lastCases
+  · have :
+
+
 
 -- /--A path is piecewise affine if it can be divided into pieces of affine maps.-/
 -- structure IsPiecewiseAffine {a b : E} (ϕ : Path a b) : Prop where
