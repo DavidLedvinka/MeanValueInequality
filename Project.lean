@@ -40,6 +40,9 @@ structure PolygonalLine (U : Set E) (a b : E) where
   segments : ∀ i : Fin (n + 1), ∀ t ∈ Icc (0 : ℝ) 1,
            (1 - t) • vertice i.castSucc + t • vertice i.succ ∈ U
 
+def PolygonalLine.toNat_vertices {a b : E} (l : PolygonalLine U a b) (i : ℕ) : E :=
+  if h : i < l.n + 2 then l.vertice ⟨i, h⟩ else b
+
 --/lemma PolygonalLine.ver_mem :  := -/
 
 -- /--A path is piecewise affine if it can be divided into pieces of affine maps.-/
@@ -53,6 +56,10 @@ structure PolygonalLine (U : Set E) (a b : E) where
 
 def PolygonalLine.length {a b : E} (ϕ : PolygonalLine U a b) : ℝ :=
   ∑ i ∈ Set.Icc 1 (Fin.last (ϕ.n + 1)), dist (ϕ.vertice i) (ϕ.vertice (i - 1))
+
+theorem PolygonalLine.length_toNat_vertices {a b : E} (ϕ : PolygonalLine U a b) :
+    ϕ.length = ∑ i ∈ Finset.range (ϕ.n + 1), dist (ϕ.toNat_vertices i) (ϕ.toNat_vertices (i - 1)) := by
+  sorry
 
 -- /--A polygonal line behaves like a path, which is a function from the unit interval to the vector space E.-/
 -- instance : FunLike (PolygonalLine U a b)  I  E where
@@ -95,13 +102,22 @@ def PolygonalLine.symm {x y : E} (ϕ : PolygonalLine U x y) : PolygonalLine U y 
   vertice := fun i ↦ ϕ.vertice (Fin.revPerm i)
   source := ϕ.target
   target := by simp [ϕ.source]
-  segments := sorry
+  segments := by
+    intro i t trange
+    simp [Fin.rev]
+    convert (ϕ.segments ⟨ϕ.n - i, by grind⟩ (1 - t) ⟨by linarith [trange.2], by linarith [trange.1]⟩) using 1
+    simp; grind
 
 lemma PolygonalLine.length_eq_rev_length {a b : E} (ϕ : PolygonalLine U a b) :
     ϕ.length = ϕ.symm.length := by
+      rw [PolygonalLine.length, PolygonalLine.symm, PolygonalLine.length_toNat_vertices]
+      simp only [PolygonalLine.toNat_vertices]
       sorry
+    --  apply Finset.sum_bijective Fin.revPerm
+    --  exact Equiv.bijective Fin.revPerm
+    --  intro i; simp [Fin.rev]
 
-instance {U : Set E} (hU : IsConnected U) (hU' : IsOpen U) : MetricSpace U where
+noncomputable instance {U : Set E} (hU : IsConnected U) (hU' : IsOpen U) : MetricSpace U where
   dist := pathDistance
   dist_self := by
     intro x
@@ -109,10 +125,39 @@ instance {U : Set E} (hU : IsConnected U) (hU' : IsOpen U) : MetricSpace U where
     unfold pathDistance
     · calc
       pathDistance x x ≤ (constantPolygonalLine (x : E) (U := U) (by grind)).length := by
-        _ = 0 := by rw [constantPolygonalLine.zero_eq_length]
+        simp only [pathDistance]
+        apply ciInf_le
+        refine ⟨0, ?_⟩
+        rintro a ⟨l, hl⟩
+        simp at hl
+        rw [← hl]; exact l.zero_le_length
+      _ = 0 := by apply (constantPolygonalLine.zero_eq_length _).symm
     apply PolygonalLine.zero_le_pathDistance
-  dist_comm := sorry
-  eq_of_dist_eq_zero := sorry
+  dist_comm := by
+    intro x y
+    simp only [pathDistance]
+    apply le_antisymm
+    have : Nonempty (PolygonalLine U y x) := by sorry
+    apply le_ciInf; intro ϕ
+    apply le_of_le_of_eq
+    apply ciInf_le _ ϕ.symm
+    refine ⟨0, ?_⟩
+    rintro a ⟨l, hl⟩
+    simp at hl; rw [← hl]; exact l.zero_le_length
+    exact ϕ.length_eq_rev_length.symm
+    have : Nonempty (PolygonalLine U x y) := by sorry
+    apply le_ciInf; intro ϕ
+    apply le_of_le_of_eq
+    apply ciInf_le _ ϕ.symm
+    refine ⟨0, ?_⟩
+    rintro a ⟨l, hl⟩
+    simp at hl; rw [← hl]; exact l.zero_le_length
+    exact ϕ.length_eq_rev_length.symm
+  eq_of_dist_eq_zero := by
+    intro x y hxy
+    rw [pathDistance] at hxy
+    sorry
+    -- epsilon delta definition of infimum
   dist_triangle := sorry
 
 #check IsConnected.isPreconnected
