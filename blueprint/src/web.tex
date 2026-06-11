@@ -147,15 +147,16 @@
 \begin{theorem}
     \label{thm:d_U is a distance}
     \uses{def:distance in U}
+    \uses{lem:composition_of_polygonal_line}
+    \uses{thm:polygonal_line_length_at_least_interval_length}
     $d_U(a,b)$ is a distance in the topological space $U$.
 \end{theorem}
 \begin{proof}
-    Let $\varphi \colon [0,1] \to U$  be an arbitrary polygonal line joining $a$ to $b$ in $U$,
-    and $t_0,\dots,t_n \in [0,1]$ the finitely many points such that
-    $\varphi \colon [t_i, t_{i+1}] \to U$ is affine for all $i \in \{0, \dots, n-1\}$.
+    Let $\varphi$ be an arbitrary polygonal line joining $a$ to $b$ in $U$,
+    defined by the sequence $a_0,\, \dots,\, a_{n + 1}$, with $a_0 = a$ and $a_{n + 1} = b$
 
     \textit{Positivity}:
-    The length of $\varphi$ is $L((t_i), n, \varphi) := \sum_{i=0}^{n-1}||\varphi(t_{i+1}) - \varphi(t_i)||$,
+    The length of $\varphi$ is $\text{Length}(\varphi) := \sum_{i=0}^{n}||a_{i + 1} - a_i||$,
     which by the definition of a norm function is strictly non-negative.
     Since $d_U(a,b)$ is the infimum of a strictly non-negative set, it must itself be non-negative.
     If $d_U(a,b) = 0$, by the previous theorem we have $||b - a|| \leq d_U(a,b) = 0$,
@@ -163,22 +164,23 @@
 
     \textit{Symmetry}:
     For any polygonal line $\varphi$ from $a$ to $b$ in $U$, 
-    the reverse path $\psi:[0,1] \to U$ defined by $\psi(x) = \varphi(1-x)$ is a polygonal line from $b$ to $a$.
-    Length($\psi$) $= \sum_{i=0}^{n-1}||\psi(1-t_i)-\psi(1-t_{i+1})|| = \sum_{i=0}^{n-1}||\varphi(t_{i+1})-\varphi(t_i)|| =$ Length($\varphi$),
+    the reverse line $\psi$ defined by $a_{n+1},\, \dots,\, a_0$ is a polygonal line from $b$ to $a$.
+    $\text{Length}(\psi) = \sum_{i=0}^{n}||a_i - a_{i + 1}|| = \sum_{i=0}^{n}||a_{i+1} - a_i|| = \text{Length}(\varphi)$,
     so the set of lengths of polygonal lines from $a$ to $b$ and from $b$ to $a$ are equivalent and therefore $d_U(a,b) = d_U(b,a)$.
 
     \textit{Triangle Inequality}:
-    Let $\varphi:[0,1] \to U$ be a polygonal line from $a$ to $b$ and $\psi:[0,1] \to U$ be a polygonal line from $b$ to $c$.
-    The extension of $\varphi$ by $\psi$ is a polygonal line $\theta:[0,1] \to U$ from $a$ to $c$, where
+    Let $\varphi$ be a polygonal line from $a$ to $b$ and $\psi$ be a polygonal line from $b$ to $c$.
+    The composition of $\varphi$ and $\psi$ is a polygonal line $\theta$ from $a$ to $c$, where
     \[
-    \theta(x) = 
         \begin{cases}
-            \varphi(2x)\quad&\mbox{if $x\in[0,\frac{1}{2}]$} \\
-            \psi(2x-1)\quad&\mbox{if $x\in[\frac{1}{2},1]$}
+            \varphi \text{ is defined by } (a, a_1, \dots, a_n, b) \\
+            \psi \text{ is defined by } (b, b_1, \dots, b_m, c)\\
+            \theta \text{ is defined by } (a, a_1, \dots, a_n, b, b_1, \dots, b_m, c)
         \end{cases}
     \]
-    By the definition of infimum, $d_U(a,c) \leq$ Length($\theta$) $=$ Length($\varphi$) $+$ Length($\psi$).
-    Since $\varphi$ and $\psi$ are arbitrary, $d_U(a,c) \leq d_U(a,b) + d_U(b,c)$.
+    By the definition of infimum, $d_U(a,c) = \inf \text{Length}(\theta) \leq \text{Length}(\theta) = \text{Length}(\varphi) + \text{Length}(\psi)$.
+    Since $\varphi$ and $\psi$ are arbitrary, we take the infimum on the right hand side,
+    and hence $d_U(a,c) \leq d_U(a,b) + d_U(b,c)$.
 \end{proof}
 
 \begin{theorem}
