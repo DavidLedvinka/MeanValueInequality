@@ -78,10 +78,28 @@ lemma PolygonalLine.zero_le_pathDistance {U : Set E} {a b : U}: 0 ≤ pathDistan
   intro i
   apply PolygonalLine.zero_le_length
 
+def constantPolygonalLine (x : E) (hu : x ∈ U) : PolygonalLine U x x where
+  n := 0
+  vertice := fun _ ↦ x
+  source := rfl
+  target := rfl
+  segments := by intros; rw [← add_smul]; simpa
+
 lemma constantPolygonalLine.zero_eq_length {x} (hU : x ∈ U) :
     0 = (constantPolygonalLine x hU).length := by
       unfold PolygonalLine.length
       simp [constantPolygonalLine]
+
+def PolygonalLine.symm {x y : E} (ϕ : PolygonalLine U x y) : PolygonalLine U y x where
+  n := ϕ.n
+  vertice := fun i ↦ ϕ.vertice (Fin.revPerm i)
+  source := ϕ.target
+  target := by simp [ϕ.source]
+  segments := sorry
+
+lemma PolygonalLine.length_eq_rev_length {a b : E} (ϕ : PolygonalLine U a b) :
+    ϕ.length = ϕ.symm.length := by
+      sorry
 
 instance {U : Set E} (hU : IsConnected U) (hU' : IsOpen U) : MetricSpace U where
   dist := pathDistance
@@ -90,8 +108,8 @@ instance {U : Set E} (hU : IsConnected U) (hU' : IsOpen U) : MetricSpace U where
     apply eq_of_le_of_ge
     unfold pathDistance
     · calc
-      pathDistance ≤ (constantPolygonalLine x hU).length
-
+      pathDistance x x ≤ (constantPolygonalLine (x : E) (U := U) (by grind)).length := by
+        _ = 0 := by rw [constantPolygonalLine.zero_eq_length]
     apply PolygonalLine.zero_le_pathDistance
   dist_comm := sorry
   eq_of_dist_eq_zero := sorry
