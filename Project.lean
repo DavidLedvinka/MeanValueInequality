@@ -206,14 +206,6 @@ noncomputable instance {U : Set E} (hU : IsConnected U) (hU' : IsOpen U) : Metri
 #check IsConnected.isPreconnected
 #check connectedSpace_iff_clopen
 
-/--The trivial path from x to itself is a polygonal line.-/
-def constantPolygonalLine (x : E) (hu : x ∈ U) : PolygonalLine U x x where
-  n := 0
-  vertice := fun _ ↦ x
-  source := rfl
-  target := rfl
-  segments := by intros; rw [← add_smul]; simpa
-
 -- def constantPolygonalLine (x : E) : PolygonalLine x x where
 --   toFun := fun _ ↦ x
 --   source' := rfl
