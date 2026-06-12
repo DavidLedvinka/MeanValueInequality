@@ -8,6 +8,7 @@ public import Mathlib.Analysis.Normed.Operator.Basic
 public import Mathlib.Analysis.Normed.Order.Lattice
 public import Mathlib.Analysis.RCLike.Basic
 public import Mathlib.Data.Int.Star
+public import Mathlib.Analysis.Calculus.MeanValue
 
 section polygonal_line
 
@@ -40,6 +41,48 @@ structure PolygonalLine (U : Set E) (a b : E) where
   segments : ∀ i : Fin (n + 1), ∀ t ∈ Icc (0 : ℝ) 1,
            (1 - t) • vertice i.castSucc + t • vertice i.succ ∈ U
 
+theorem test {a b} (l : PolygonalLine U a b) (i : Fin (l.n + 1)) :
+  MapsTo (AffineMap.lineMap (l.vertice i.castSucc) (l.vertice i.succ))
+    (Icc 0 1 : Set ℝ) U := by
+    simp[AffineMap.lineMap, MapsTo, - Set.mem_Icc]
+    intro t ht
+    convert l.segments i t ht using 1
+    rw[smul_sub, sub_smul]
+    grind [one_smul]
+
+
+
+def PolygonalLine.toNat_vertices {a b : E} (l : PolygonalLine U a b) (i : ℕ) : E :=
+  if h : i < l.n + 2 then l.vertice ⟨i, h⟩ else b
+
+
+theorem test2 {a b} (l : PolygonalLine U a b) (i : ℕ) (hi : i < l.n + 1) :
+  MapsTo (AffineMap.lineMap (l.toNat_vertices i) (l.toNat_vertices (i + 1)))
+    (Icc 0 1 : Set ℝ) U := by
+  unfold MapsTo
+  have hi1: i < l.n +2 := by
+    grind
+  simp [PolygonalLine.toNat_vertices, hi1, hi, - Set.mem_Icc]
+  --simp [AffineMap.lineMap]
+  intro t ht
+  apply test l ⟨i, hi⟩ ht
+
+
+
+
+lemma toNat_eq_vertice1 {a b : E} (l : PolygonalLine U a b): l.toNat_vertices 0 = a := by
+  have h : 0 < l.n + 2 := by
+    grind
+  unfold PolygonalLine.toNat_vertices
+  simp [h, l.source]
+
+lemma toNat_eq_vertice2 {a b : E} (l : PolygonalLine U a b): l.toNat_vertices (l.n + 1) = b := by
+  have h : l.n + 1 < l.n + 2 := by
+    grind
+  unfold PolygonalLine.toNat_vertices
+  simp [h]
+  apply l.target
+
 lemma PolygonalLine.ver_mem (p : PolygonalLine U a b) (i : Fin (p.n + 2)) :
     p.vertice i ∈ U := by
   rcases Fin.eq_castSucc_or_eq_last i with ⟨h1, h⟩ | h2
@@ -58,16 +101,16 @@ lemma PolygonalLine.ver_mem (p : PolygonalLine U a b) (i : Fin (p.n + 2)) :
 -- structure PolygonalLine (a b : E) extends Path a b where
 --   piecewise_affine : IsPiecewiseAffine toPath
 
+theorem nonempty_polygonalLine {U : Set E} (hU : IsConnected U) (a b : E) :
+    Nonempty (PolygonalLine U a b) := by
+  sorry
+
 def PolygonalLine.length {a b : E} (ϕ : PolygonalLine U a b) : ℝ :=
   ∑ i ∈ Set.Icc 1 (Fin.last (ϕ.n + 1)), dist (ϕ.vertice i) (ϕ.vertice (i - 1))
 
--- /--A polygonal line behaves like a path, which is a function from the unit interval to the vector space E.-/
--- instance : FunLike (PolygonalLine U a b)  I  E where
---   coe := fun ϕ ↦ ϕ.toPath.toFun
---   coe_injective' ϕ₁ ϕ₂ h := by
---     dsimp at h; ext x
---     simp only [DFunLike.coe_fn_eq] at h
---     cases ϕ₁; cases ϕ₂; congr
+theorem PolygonalLine.length_toNat_vertices {a b : E} (ϕ : PolygonalLine U a b) :
+    ϕ.length = ∑ i ∈ Finset.range (ϕ.n + 1), dist (ϕ.toNat_vertices i) (ϕ.toNat_vertices (i + 1)) := by
+  sorry
 
 noncomputable
 def pathDistance {U : Set E} (x y : U) : ℝ :=
@@ -277,7 +320,7 @@ end
 
 /--A subset of a normed vector space is connected by polygonal lines if it is connected.-/
 lemma polygonal_connected_of_connected (U : Set E) (Uopen : IsOpen U)  :
-  IsConnected U → ∀ x y : E, x ∈ U ∧ y ∈ U → Nonempty (PolygonalLine U x y) := by
+    IsConnected U → ∀ x y : E, x ∈ U ∧ y ∈ U → Nonempty (PolygonalLine U x y) := by
   intro Uconnected x y ⟨xu, yu⟩
   have Uconnected : ConnectedSpace U := by
     rw [isConnected_iff_connectedSpace] at Uconnected
@@ -357,7 +400,64 @@ Convex.norm_image_sub_le_of_norm_hasFDerivWithin_le.{u_1, u_3, u_4} {E : Type u_
 
 variable {G : Type*} [NormedAddCommGroup G] [NormedSpace ℝ G]
 
+#check Convex.norm_image_sub_le_of_norm_hasFDerivWithin_le
+
+lemma sublength_sum_geq_distance (a : ℕ → E) :
+  ∀ n : ℕ, ‖a n - a 0‖ ≤ ∑ i ∈ Finset.range n, ‖a (i+1) - a i‖:= by
+    intro n
+    induction n with
+    | zero =>
+      simp
+    | succ k hk =>
+      calc
+        ‖a (k + 1) - a 0‖ = ‖(a (k + 1) - a k) + (a k - a 0)‖ := by
+          simp
+        _ ≤ ‖(a (k + 1) - a k)‖ + ‖(a k - a 0)‖ :=
+          norm_add_le _ _
+        _ ≤ ‖a (k + 1) - a k‖ + ∑ i ∈ Finset.range k, ‖a (i + 1) - a i‖ :=
+          add_le_add_right hk _
+        _ = ∑ i ∈ Finset.range (k + 1), ‖a (i + 1) - a i‖ := by
+          rw [Finset.sum_range_succ]; rw[add_comm]
+
+
+
 theorem norm_image_sub_le_of_norm_hasFDerivWithin_le' {f : E → G} {C : ℝ} {s : Set E} {x y : s}
     {f' : E → E →L[ℝ] G} (hf : ∀ x ∈ s, HasFDerivWithinAt f (f' x) s x) (bound : ∀ x ∈ s, ‖f' x‖ ≤ C)
     (hs : IsConnected s) (hs' : IsOpen s) : ‖f y - f x‖ ≤ C * pathDistance y x := by
-  sorry
+  simp [pathDistance]
+  have hC : 0 ≤ C := by
+    apply le_trans
+    apply norm_nonneg (f' x)
+    apply bound
+    simp
+  rw[Real.mul_iInf_of_nonneg]
+  have : Nonempty (PolygonalLine s y x) :=
+    polygonal_connected_of_connected s hs' hs y x (by grind)
+  apply le_ciInf
+  intro x_1
+  nth_rw 1 [← toNat_eq_vertice1 x_1]
+  nth_rw 2 [← toNat_eq_vertice2 x_1]
+  conv => enter [1, 1, 1]; change (f ∘ x_1.toNat_vertices) _
+  conv => enter [1, 1, 2]; change (f ∘ x_1.toNat_vertices) _
+  grw [norm_sub_rev, sublength_sum_geq_distance]
+  apply le_trans
+  apply Finset.sum_le_sum
+  intro i hi
+  simp
+  set g := (AffineMap.lineMap (x_1.toNat_vertices i) (x_1.toNat_vertices (i + 1)) : ℝ → E)
+  have segm : MapsTo g (Icc 0 1 : Set ℝ) s := by
+    unfold g
+    apply test2
+    grind
+
+  have hD : ∀ t ∈ Icc (0 : ℝ) 1,
+      HasDerivWithinAt (f ∘ g) (f' (g t) ((x_1.toNat_vertices (i + 1)) - (x_1.toNat_vertices i))) (Icc 0 1) t := fun t ht => by
+    simpa using ((hf (g t) (segm ht)).restrictScalars ℝ).comp_hasDerivWithinAt _
+      AffineMap.hasDerivWithinAt_lineMap segm
+  have bound : ∀ t ∈ Ico (0 : ℝ) 1, ‖f' (g t) ((x_1.toNat_vertices (i + 1)) - (x_1.toNat_vertices i))‖ ≤ C * ‖(x_1.toNat_vertices (i + 1)) - (x_1.toNat_vertices i)‖ := fun t ht =>
+    ContinuousLinearMap.le_of_opNorm_le _ (bound _ <| segm <| Ico_subset_Icc_self ht) _
+  simpa [g] using norm_image_sub_le_of_norm_deriv_le_segment_01' hD bound
+  rw [PolygonalLine.length_toNat_vertices]
+  simp[dist_eq_norm, norm_sub_rev]
+  rw[Finset.mul_sum]
+  exact hC
