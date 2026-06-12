@@ -69,8 +69,8 @@
 % \end{proof}
 \begin{definition}
     \label{def:polygonalLine}
-    \lean{PolygonalLine}
     \leanok
+    \lean{PolygonalLine}
     Let $(E, \, ||\cdot||)$ be a normed vector space over $\mathbb{R}$, with subset $A \subseteq E$.
     A \emph{polygonal line} in $A$ is a sequence of $n + 2$ points $u_{0}, \dots, u_{n+1}$ in $E$,
     such that each line segment connecting neighbouring vertices lies completely in $A$, i.e.
@@ -82,9 +82,9 @@
 
 \begin{lemma}
     \label{lem:composition_of_polygonal_line}
+    \leanok
     \lean{PolygonalLine.trans}
     \uses{def:polygonalLine}
-    \leanok
     Let $U$ be a subset of a normed vector space.
     Given a polygonal line in U, joining $x \in U$ and $y \in U$, together with another polygonal line joining $y$ and $z \in U$,
     then by connecting the two polygonal lines head-to-tail, the result is a polygonal line in U, joining $x$ and $z$.
@@ -103,9 +103,9 @@
 
 \begin{theorem}
     \label{thm:existence_of_polygonal_line}
+    \leanok
     \lean{polygonal_connected_of_connected}
     \uses{lem:composition_of_polygonal_line}
-    \leanok
     if $U$ is an open connected set of a normed vector space, then any two points of $U$ can be joined by a polygonal line in $U$.
 \end{theorem}
 \begin{proof}
@@ -187,6 +187,7 @@
     \label{thm:mean value theorem in connected open set}
     \uses{def:distance in U}
     \uses{thm:existence_of_polygonal_line}
+    \leanok
     \lean{norm_image_sub_le_of_norm_hasFDerivWithin_le'}
     Let $U$ be a connected open set of a Banach space $E$.
     Let $f: U \rightarrow F$ be a differentiable mapping with values in a Banach space $F$.
