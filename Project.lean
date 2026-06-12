@@ -112,15 +112,95 @@ theorem PolygonalLine.length_toNat_vertices {a b : E} (ϕ : PolygonalLine U a b)
     ϕ.length = ∑ i ∈ Finset.range (ϕ.n + 1), dist (ϕ.toNat_vertices i) (ϕ.toNat_vertices (i + 1)) := by
   sorry
 
+lemma PolygonalLine.zero_le_length {a b : E} (ϕ : PolygonalLine U a b) : 0 ≤ ϕ.length := by
+  unfold length
+  apply Finset.sum_nonneg
+  intro i h
+  apply dist_nonneg
+
 noncomputable
 def pathDistance {U : Set E} (x y : U) : ℝ :=
   ⨅ l : PolygonalLine U (x : E) (y : E), l.length
 
+lemma PolygonalLine.zero_le_pathDistance {U : Set E} {a b : U}: 0 ≤ pathDistance a b := by
+  unfold pathDistance
+  apply Real.iInf_nonneg
+  intro i
+  apply PolygonalLine.zero_le_length
+
+def constantPolygonalLine (x : E) (hu : x ∈ U) : PolygonalLine U x x where
+  n := 0
+  vertice := fun _ ↦ x
+  source := rfl
+  target := rfl
+  segments := by intros; rw [← add_smul]; simpa
+
+lemma constantPolygonalLine.zero_eq_length {x} (hU : x ∈ U) :
+    0 = (constantPolygonalLine x hU).length := by
+      unfold PolygonalLine.length
+      simp [constantPolygonalLine]
+
+def PolygonalLine.symm {x y : E} (ϕ : PolygonalLine U x y) : PolygonalLine U y x where
+  n := ϕ.n
+  vertice := fun i ↦ ϕ.vertice (Fin.revPerm i)
+  source := ϕ.target
+  target := by simp [ϕ.source]
+  segments := by
+    intro i t trange
+    simp [Fin.rev]
+    convert (ϕ.segments ⟨ϕ.n - i, by grind⟩ (1 - t) ⟨by linarith [trange.2], by linarith [trange.1]⟩) using 1
+    simp; grind
+
+lemma PolygonalLine.length_eq_rev_length {a b : E} (ϕ : PolygonalLine U a b) :
+    ϕ.length = ϕ.symm.length := by
+      rw [PolygonalLine.length, PolygonalLine.symm, PolygonalLine.length_toNat_vertices]
+      simp only [PolygonalLine.toNat_vertices]
+      sorry
+    --  apply Finset.sum_bijective Fin.revPerm
+    --  exact Equiv.bijective Fin.revPerm
+    --  intro i; simp [Fin.rev]
+
 noncomputable instance {U : Set E} (hU : IsConnected U) (hU' : IsOpen U) : MetricSpace U where
   dist := pathDistance
-  dist_self := sorry
-  dist_comm := sorry
-  eq_of_dist_eq_zero := sorry
+  dist_self := by
+    intro x
+    apply eq_of_le_of_ge
+    unfold pathDistance
+    · calc
+      pathDistance x x ≤ (constantPolygonalLine (x : E) (U := U) (by grind)).length := by
+        simp only [pathDistance]
+        apply ciInf_le
+        refine ⟨0, ?_⟩
+        rintro a ⟨l, hl⟩
+        simp at hl
+        rw [← hl]; exact l.zero_le_length
+      _ = 0 := by apply (constantPolygonalLine.zero_eq_length _).symm
+    apply PolygonalLine.zero_le_pathDistance
+  dist_comm := by
+    intro x y
+    simp only [pathDistance]
+    apply le_antisymm
+    have : Nonempty (PolygonalLine U y x) := by sorry
+    apply le_ciInf; intro ϕ
+    apply le_of_le_of_eq
+    apply ciInf_le _ ϕ.symm
+    refine ⟨0, ?_⟩
+    rintro a ⟨l, hl⟩
+    simp at hl; rw [← hl]; exact l.zero_le_length
+    exact ϕ.length_eq_rev_length.symm
+    have : Nonempty (PolygonalLine U x y) := by sorry
+    apply le_ciInf; intro ϕ
+    apply le_of_le_of_eq
+    apply ciInf_le _ ϕ.symm
+    refine ⟨0, ?_⟩
+    rintro a ⟨l, hl⟩
+    simp at hl; rw [← hl]; exact l.zero_le_length
+    exact ϕ.length_eq_rev_length.symm
+  eq_of_dist_eq_zero := by
+    intro x y hxy
+    rw [pathDistance] at hxy
+    sorry
+    -- epsilon delta definition of infimum
   dist_triangle := sorry
 
 #check IsConnected.isPreconnected
