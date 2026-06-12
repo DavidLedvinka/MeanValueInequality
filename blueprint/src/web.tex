@@ -6,7 +6,7 @@
 
 \documentclass{report}
 
-\usepackage{amssymb, amsthm, amsmath}
+\usepackage{amssymb, amsthm, amsmath, mathtools}
 \usepackage{hyperref}
 \usepackage[showmore, dep_graph]{blueprint}
 
@@ -20,10 +20,6 @@
 
 \title{The Mean Value Inequality}
 \author{David Ledvinka}
-
-\begin{document}
-\maketitle
-\input{content}
 
 \begin{document}
 \maketitle
@@ -71,145 +67,212 @@
 % \begin{proof}
 %   This is the proof of my theorem.
 % \end{proof}
-\begin{theorem}
-    \label{thm:existence of polygonal line}
-    \lean{polygonal_connected_of_connected}
-    \uses{lem:V is open}
-    \uses{lem:V is closed}
+\begin{definition}
+    \label{def:polygonalLine}
+    \lean{PolygonalLine}
+    \leanok
+    Let $(E, \, ||\cdot||)$ be a normed vector space over $\mathbb{R}$, with subset $A \subseteq E$.
+    A \emph{polygonal line} in $A$ is a sequence of $n + 2$ points $u_{0}, \dots, u_{n+1}$ in $E$,
+    such that each line segment connecting neighbouring vertices lies completely in $A$, i.e.
+    \[
+        t \cdot u_{i} + (1 - t) \cdot u_{i + 1} \in A \quad \forall \, i = 0, \ldots, n
+        \text{ and } t \in [0,\, 1].
+    \]
+\end{definition}
+
+\begin{lemma}
+    \label{lem:composition_of_polygonal_line}
+    \lean{PolygonalLine.trans}
     \uses{def:polygonalLine}
+    \leanok
+    Let $U$ be a subset of a normed vector space.
+    Given a polygonal line in U, joining $x \in U$ and $y \in U$, together with another polygonal line joining $y$ and $z \in U$,
+    then by connecting the two polygonal lines head-to-tail, the result is a polygonal line in U, joining $x$ and $z$.
+\end{lemma}
+\begin{proof}
+    \leanok
+    The construction of the composition of polygonal lines follows common sense:
+    For the polygonal lines $a$, defined by $(x,\, a_1,\, \dots,\, a_n,\,y)$,
+    and $b$, defined by $(y,\, b_1,\, \dots,\, b_m,\, z)$,
+    we define the composition $a \circ b$ by the sequence $(x,\,a_1,\,\dots,\, a_n,\,y,\,b_1,\,\dots,\,b_m,\,z)$.
+    
+    It remains to show that each segment is still contained in $U$.
+    This is trivial as the first $n + 2$ vertices belong to $a$ and are all contained in $U$.
+    Similarly, the last $m + 2$ vertices belong to $b$, and are all contained in $U$ as well.
+\end{proof}
+
+\begin{theorem}
+    \label{thm:existence_of_polygonal_line}
+    \lean{polygonal_connected_of_connected}
+    \uses{lem:composition_of_polygonal_line}
     \leanok
     if $U$ is an open connected set of a normed vector space, then any two points of $U$ can be joined by a polygonal line in $U$.
 \end{theorem}
+\begin{proof}
+    \leanok
+    The case where $U = \emptyset$ is trivial. So we assume $U$ to be non-empty.
+    Fix a point $x \in U$, and consider the set 
+    \[V \coloneqq \{u \in U \mid \exists \text{ a polygonal line connecting } x \text{ and } u.\}\]
+    We want to show that $U = V$.
 
-\begin{proof}
-\leanok
-% TODO: Add proof to latex
+    To show that, we prove that $V$ is both closed and open in $U$ and $V$ is non-empty.
+    The latter is true, as $x$ must be in $V$.
+    
+    For closedness, we show that $V = \bar{V}$, the closure of $V$.
+    Fix a point $a \in \bar{V}$, then $\exists\, \epsilon > 0$, such that $B_{\epsilon}(a)\,\cap\,V \neq \emptyset$. 
+    Take a point $b \in B_{\epsilon}(a)\,\cap\,V$.
+    Since $b \in V$, there is a polygonal line joining $x$ and $b$.
+    Since $b \in B_{\epsilon}(a)$, there is a line segment joining $b$ and $a$, which is a polygonal line as well.
+    By composing the two polygonal lines, we create a polygonal line joining $x$ and $a$.
+    Hence $a \in V$.
+
+    For openness, fix a point $a \in V$.
+    We take an open ball centred at $a$ and contained in $U$, as $U$ is open.
+    It can be shown that this open ball is contained in $V$ as well.
+    It suffices to show that every point $b$ in the open ball can be connected to $x$ using a polygonal line,
+    which can be constructed by composing the polygonal line joining $x$ and $a$ with the line segment joining $a$ and $b$.
+
+    Since $V$ is both open and closed in $U$, it is either equal to $U$ or is the empty set.
+    Since it is non-empty, we must have $U = V$.
 \end{proof}
 
-\begin{lemma}
-    \label{lem:V is open}
-    \uses{def:polygonalLine}
-    let $x \in U$, and $V$ the set of all points in $U$ that can be joined to $x$ by a polygonal line contained in $U$. Then $V$ is open.
-\end{lemma}
-\begin{proof}
-    let $a \in V$ be the end of the polygonal line $l$ which starts from $x$.\\ Since $U$ is open, there exist a ball $B(a,r)$ contained in $U$. Every points $p \in B(a,r)$ can be joined to $a$ by a straight line. Therefore, by joining the two polygonal line, we have a polygonal line joining $x$ and $p$. Hence, $B(a,r) \subset V$ and $V$ is open.
-\end{proof}
-\begin{lemma}
-    \label{V is closed}
-    \uses{def:polygonalLine}
-    $V$ is closed in $U$.
-\end{lemma}
-\begin{proof}
-    Let $a \in \overline{V}$, Since $U$ is open, there exists a ball $B(a,r)$ contained in $U$. Since $a$ is in the closure of $V$, there exists a point $b \in B(a,r) \cap V$. Then $a$ can be joined to $b$ via a straight line contained in $U$ and $b$ can be joined to $x$ by a polygonal line in $U$. Therefore, $a$ can be joined to $x$ by a polygonal line in $U$. Hence $a \in V$ and $V$ is closed in $U$.
-\end{proof}
-\begin{proof}[Proof of Theorem \ref{thm:existence of polygonal line}]
-    Since $V$ is both open and closed in $U$, and $U$ is connected then either $V = U$ or $V = \emptyset$. If $U$ is not empty then $V$ contained $x$ and is not empty, Hence $V = U$.\\ Otherwise if $U = \emptyset$, then the result is trivial.
-\end{proof}
+
 \begin{definition}
     \label{def:distance in U}
-    \uses{thm:existence of polygonal line}
-    Let $U$ be an open connected set of a Banach space $E$. for $a, b \in U$, define $d_U(a,b)$ to be the infimum of the lengths of the polygonal lines contained in $U$ joining $a$ and $b$.
+    \uses{thm:existence_of_polygonal_line}
+    Let $U$ be an open connected set of a Banach space $E$.
+    For $a, b \in U$, we define $d_U(a,b)$ to be the infimum of the lengths of the polygonal lines contained in $U$ joining $a$ and $b$.
 \end{definition}
 
 \begin{theorem}
     \label{thm:d_U is a distance}
     \uses{def:distance in U}
+    \uses{lem:composition_of_polygonal_line}
+    \uses{thm:polygonal_line_length_at_least_interval_length}
     $d_U(a,b)$ is a distance in the topological space $U$.
 \end{theorem}
 \begin{proof}
-Let $\varphi \colon [0,1] \to U$  be an arbitrary polygonal line joining $a$ to $b$ in $U$, and $t_0,\dots,t_n \in [0,1]$ the finitely many points such that $\varphi \colon [t_i, t_{i+1}] \to U$ is affine for all $i \in \{0, \dots, n-1\}$.
+    Let $\varphi$ be an arbitrary polygonal line joining $a$ to $b$ in $U$,
+    defined by the sequence $a_0,\, \dots,\, a_{n + 1}$, with $a_0 = a$ and $a_{n + 1} = b$
 
-    \textit{Positivity}: The length of $\varphi$ is $L((t_i), n, \varphi) := \sum_{i=0}^{n-1}||\varphi(t_{i+1}) - \varphi(t_i)||$ which by the definition of a norm function is strictly non-negative. Since $d_U(a,b)$ is the infimum of a strictly non-negative set it must itself be non-negative. If $d_U(a,b) = 0$, by a previous theorem $||b - a|| \leq d_U(a,b) = 0$, which implies $a = b$.
+    \textit{Positivity}:
+    The length of $\varphi$ is $\text{Length}(\varphi) := \sum_{i=0}^{n}||a_{i + 1} - a_i||$,
+    which by the definition of a norm function is strictly non-negative.
+    Since $d_U(a,b)$ is the infimum of a strictly non-negative set, it must itself be non-negative.
+    If $d_U(a,b) = 0$, by the previous theorem we have $||b - a|| \leq d_U(a,b) = 0$,
+    which implies $a = b$.
 
-    \textit{Symmetry}: For any polygonal line $\varphi$ from $a$ to $b$ in $U$, the reverse path $\psi:[0,1] \to U$ defined $\psi(x) = \varphi(1-x)$ is a polygonal line from $b$ to $a$.Length($\psi$) $= \sum_{i=0}^{n-1}||\psi(1-t_i)-\psi(1-t_{i+1})|| = \sum_{i=0}^{n-1}||\varphi(t_{i+1})-\varphi(t_i)|| =$ Length($\varphi$), so the set of lengths of polygonal lines from $a$ to $b$ and from $b$ to $a$ are equivalent and therefore $d_U(a,b) = d_U(b,a)$.
+    \textit{Symmetry}:
+    For any polygonal line $\varphi$ from $a$ to $b$ in $U$, 
+    the reverse line $\psi$ defined by $a_{n+1},\, \dots,\, a_0$ is a polygonal line from $b$ to $a$.
+    $\text{Length}(\psi) = \sum_{i=0}^{n}||a_i - a_{i + 1}|| = \sum_{i=0}^{n}||a_{i+1} - a_i|| = \text{Length}(\varphi)$,
+    so the set of lengths of polygonal lines from $a$ to $b$ and from $b$ to $a$ are equivalent and therefore $d_U(a,b) = d_U(b,a)$.
 
-    \textit{Triangle Inequality}: Let $\varphi:[0,1] \to U$ be a polygonal line from $a$ to $b$ and $\psi:[0,1] \to U$ be a polygonal line from $b$ to $c$. The extension of $\varphi$ by $\psi$ is a polygonal line $\theta:[0,1] \to U$ from $a$ to $c$, where
-    \begin{center}
-    $\theta(x) = \Bigl\{
-    \begin{array}{cl}
-    \varphi(2x)\quad&\mbox{if $x\in[0,\frac{1}{2}]$}\\
-    \psi((2x-1)\quad&\mbox{if $x\in[\frac{1}{2},1]$}
-    \end{array}$
-    \end{center}
-By the definition of the infimum, $d_U(a,c) \leq$ Length($\theta$) $=$ Length($\varphi$) $+$ Length($\psi$), and since $\varphi$ and $\psi$ are arbitrary, $d_U(a,c) \leq d_U(a,b) + d_U(b,c)$.
+    \textit{Triangle Inequality}:
+    Let $\varphi$ be a polygonal line from $a$ to $b$ and $\psi$ be a polygonal line from $b$ to $c$.
+    The composition of $\varphi$ and $\psi$ is a polygonal line $\theta$ from $a$ to $c$, where
+    \[
+        \begin{cases}
+            \varphi \text{ is defined by } (a, a_1, \dots, a_n, b) \\
+            \psi \text{ is defined by } (b, b_1, \dots, b_m, c)\\
+            \theta \text{ is defined by } (a, a_1, \dots, a_n, b, b_1, \dots, b_m, c)
+        \end{cases}
+    \]
+    By the definition of infimum, $d_U(a,c) = \inf \text{Length}(\theta) \leq \text{Length}(\theta) = \text{Length}(\varphi) + \text{Length}(\psi)$.
+    Since $\varphi$ and $\psi$ are arbitrary, we take the infimum on the right hand side,
+    and hence $d_U(a,c) \leq d_U(a,b) + d_U(b,c)$.
 \end{proof}
+
 \begin{theorem}
     \label{thm:mean value theorem in connected open set}
     \uses{def:distance in U}
-    \uses{thm:existence of polygonal line}
+    \uses{thm:existence_of_polygonal_line}
     \lean{norm_image_sub_le_of_norm_hasFDerivWithin_le'}
-    Let $U$ be a connected open set of a Banach space $E$. Let $f: U \rightarrow F$ be a differentiable mapping with values in a Banach space $F$. Assume that $$||f'(x)|| \leq k, \forall x \in U$$
-    Then, for any $x_1,x_2 \in U$, $||f(x_1)-f(x_2)|| \leq k \cdot d_U(x_1,x_2)$.
+    Let $U$ be a connected open set of a Banach space $E$.
+    Let $f: U \rightarrow F$ be a differentiable mapping with values in a Banach space $F$.
+    Assume that
+    \[
+        ||f'(x)|| \leq k \quad \forall x \in U
+    \]
+    then for any $x_1,x_2 \in U$, $||f(x_1)-f(x_2)|| \leq k \cdot d_U(x_1,x_2)$.
 \end{theorem}
 \begin{proof}
-    Let $x_1,x_2 \in U$ and $l$ a polygonal line contained in $U$ joining $x_1$ and $x_2$. then let $l$ be composed of $n$ line segments with endpoints $(a_0,a_1), (a_1,a_2), \dots, (a_{n-1},a_n)$, where $a_0=x_1, a_n = x_2$ and $a_i \in U$. Then from the mean value inequality on each interval $(a_i, a_{i+1})$, we have $||f(a_i)-f(a_{i+1})|| \leq k \cdot ||a_i-a_{i+1}||$. From the triangle inequality we have $$||f(x_1)-f(x_2)|| \leq \sum_{i=0}^{n-1} ||f(a_i)-f(a_{i+1})|| \leq \sum_{i=0}^{n-1} k \cdot ||a_i-a_{i+1}|| = k \cdot \text{length}(l)$$ as $\text{length}(l)$ is the sum of the length of each interval. Therefore, taking the infimum we get, $$||f(x_1)-f(x_2)|| \leq k \cdot \inf{\text{length}(l)} = k\cdot d_U(x_1,x_2)$$
+    Let $x_1,x_2 \in U$ and $l$ a polygonal line contained in $U$ joining $x_1$ and $x_2$.
+    Suppose $l$ is defined by $n + 1$ vertices $a_0,\, \dots,\, a_{n+1}$,
+    where $a_0=x_1, a_{n+1} = x_2$ and $a_i \in U$.
+    Then from the mean value inequality on each interval $(a_i, a_{i+1})$, we have $||f(a_i)-f(a_{i+1})|| \leq k \cdot ||a_i-a_{i+1}||$.
+    From the triangle inequality we have
+    \begin{align*}
+        ||f(x_1)-f(x_2)|| &\leq \sum_{i=0}^{n} ||f(a_i)-f(a_{i+1})|| \\
+        &\leq \sum_{i=0}^{n} k \cdot ||a_i-a_{i+1}||\\
+        &= k \cdot \text{Length}(l)
+    \end{align*}
+    as $\text{Length}(l)$ is the sum of the length of each interval.
+    Therefore, taking the infimum we get
+    \[
+        ||f(x_1)-f(x_2)|| \leq k \cdot \inf{\text{Length}(l)} = k\cdot d_U(x_1,x_2)
+    \]
 \end{proof}
-
-
-\begin{definition}
-    \label{def:path}
-    In a topological space $X$ a continuous mapping $\varphi \colon [0,1] \to X$ is called a \emph{path}; the point $\varphi(0)$ is called the \emph{origin of the path} and the point $\varphi(1)$ is called the \emph{end of the path}. Two points $a,b \in X$ can be joined by a path if there exists $\varphi$ such that $\varphi(0) = a$ and $\varphi(1) = b$
-\end{definition}
-
-\begin{definition}
-    \label{def:polygonalLine}
-    Let $(E, ||\cdot||)$ be a normed vector space over $\mathbb{R}$, with subset $A \subseteq E$. A \emph{polygonal line} in $A$ is a path $\varphi \colon [0,1] \to A$ such that there exists $n \geq 1$ with points $t_0,\dots,t_n$ on the interval $[0,1]$:
-    \begin{center}
-    $t_0 = 0 < t_1 < \dotsb < t_{n-1} < t_n = 1$
-    \end{center}
-    so that for each $i \in \{0,\dots,n-1\}$, the restriction of $\varphi$ on the interval $[t_i,t_{i+1}]$ is an affine map. This is to say that $t \in [t_i,t_{i+1}] \implies \varphi(t) = t \cdot v_i + c_i$ for some $v_i,c_i \in E$. Hence the image of $[t_i,t_{i+1}]$ in $\varphi$ is a straight-line segment in $A$ from $\varphi(t_i)$ to $\varphi(t_{i+1})$.
-\end{definition}
 
 \begin{definition}
     \label{def:intervalLength}
-    Let $(E, ||\cdot||)$ be a normed vector space over $\mathbb{R}$. The \emph{length of an interval} with origin $a \in E$ and end $b \in E$ is $d(a,b) := ||b - a||$.
+    Let $(E, ||\cdot||)$ be a normed vector space over $\mathbb{R}$.
+    The \emph{length of an interval} with origin $a \in E$ and end $b \in E$ is $d(a,b) := ||b - a||$.
 \end{definition}
 
 \begin{definition}
     \label{def:polygonalLineLength}
-    Given a partition $(t_i)_{i=0}^{n}$ for some fixed $n \geq 1$, the \emph{length of a polygonal line} $\varphi$ respecting this partition is the sum of the lengths of the intervals from which it is formed:
-    \begin{center}
-    $L((t_i), n, \varphi) := \sum_{i=0}^{n-1}||\varphi(t_{i+1}) - \varphi(t_i)||$
-    \end{center}
+    \uses{def:polygonalLine}
+    \uses{def:intervalLength}
+    Given a polygonal line $\varphi$ defined by $(a_0,\, \dots,\, a_{n+1})$, with some fixed $n \geq 0$
+    the \emph{length of the polygonal line} $\varphi$ is the sum of the lengths of the intervals from which it is formed:
+    \[
+        \text{Length}(\varphi) := \sum_{i=0}^{n} d(a_i, a_{i+1}) = \sum_{i=0}^{n} || a_{i+1} - a_i ||
+    \]
 \end{definition}
 
 \begin{lemma}
     \label{lemma:norm_sum_at_least_sum_norm}
     Given a sequence $(a_i)_{i=0}^{n}$ with $a_i \in E$ for some $n \geq 1$, $\sum_{i=0}^{n-1}||a_{i+1} - a_i|| \geq ||a_n - a_0||$
 \end{lemma}
-
-\begin{proof}[Proof of Lemma \ref{lemma:norm_sum_at_least_sum_norm}]
+\begin{proof}
     \begin{itemize}
         \item \textbf{Base Case ($n=1$):}
         For $n=1$, we need $||a_1 - a_0|| \geq ||a_1 - a_0||$ which follows immediately by reflexivity.
 
         \item \textbf{Induction Hypothesis:}
         Assume that the result holds for any such sequence $(b_i)_{i=0}^k$. That is,
-        \begin{center}
-            $\sum_{i=0}^{k-1}||b_{i+1} - b_i|| \geq ||b_k - b_0||$
-        \end{center}
+        \[
+            \sum_{i=0}^{k-1}||b_{i+1} - b_i|| \geq ||b_k - b_0||
+        \]
 
         \item \textbf{Induction Step:}
-        We want to show that $\sum_{i=0}^{k}||a_{i+1} - a_i|| \geq ||a_{k+1} - a_0||$ must follow from this assumption, for some arbitrary sequence  $(a_i)_{i=0}^{k+1}$.
-
-        $||a_{k+1} - a_0|| =  ||(a_{k+1} - a_k) + (a_k - a_0)|| \\ \leq ||a_{k+1} - a_k|| + ||a_k - a_0|| \\ \leq ||a_{k+1} - a_k|| + \sum_{i=0}^{k-1}||a_{i+1} - a_i|| \\ = \sum_{i=0}^{k}||a_{i+1} - a_i||$
+        We want to show that $\sum_{i=0}^{k}||a_{i+1} - a_i|| \geq ||a_{k+1} - a_0||$ follows from this assumption.
+        For some arbitrary sequence  $(a_i)_{i=0}^{k+1}$,
+        \begin{align*}
+            ||a_{k+1} - a_0|| &=  ||(a_{k+1} - a_k) + (a_k - a_0)|| \\
+            &\leq ||a_{k+1} - a_k|| + ||a_k - a_0|| \\
+            &\leq ||a_{k+1} - a_k|| + \sum_{i=0}^{k-1}||a_{i+1} - a_i|| \\
+            &= \sum_{i=0}^{k}||a_{i+1} - a_i||
+        \end{align*}
     \end{itemize}
 
     Therefore, by the principle of mathematical induction, $\sum_{i=0}^{n-1}||a_{i+1} - a_i|| \geq ||a_n - a_0||$ for any such sequence with any $n \geq 1$.
 \end{proof}
 
 \begin{theorem}
-\label{thm:polygonal_line_length_at_least_interval_length}
+    \label{thm:polygonal_line_length_at_least_interval_length}
     % \uses{def:polygonalLineLength}
     % \uses{def:intervalLength}
-    % \uses{lemma:norm_sum_at_least_sum_norm}
-    The length of a polygonal line $\varphi$ respecting a partition $(t_i)_{i=0}^{n}$ for some fixed $n \geq 1$ between origin $a = \varphi(0)$ and end $b = \varphi(1)$ is at least equal to the length of the interval between these points:
-    \begin{center}
-    $\sum_{i=0}^{n-1}||\varphi(t_{i+1}) - \varphi(t_i)|| \geq ||\varphi(1) - \varphi(0)||$
-    \end{center}
+    \uses{lemma:norm_sum_at_least_sum_norm}
+    The length of a polygonal line $\varphi$ defined by $a_0,\, \dots,\, a_{n + 1}$ for some fixed $n \geq 0$
+    between origin $a = a_0$ and end $b = a_{n+1}$ is at least equal to the length of the interval between them:
+    \[
+        \sum_{i=0}^{n}||a_{i+1} - a_i|| \geq ||b - a||
+    \]
 \end{theorem}
-
-\begin{proof}[Proof of Theorem \ref{thm:polygonal_line_length_at_least_interval_length}]
-    We consider the sequence of points $(p_i)_{i=0}^n$ with $p_i := \varphi(t_i)$. Then by the previous lemma, with $p_0 = \varphi(0)$ and $p_n = \varphi(1)$, our desired result follows immediately.
+\begin{proof}
+    The result follows immediately from the lemma.
 \end{proof}
+
 \end{document}
