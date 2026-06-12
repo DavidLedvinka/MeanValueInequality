@@ -8,6 +8,7 @@ public import Mathlib.Analysis.Normed.Operator.Basic
 public import Mathlib.Analysis.Normed.Order.Lattice
 public import Mathlib.Analysis.RCLike.Basic
 public import Mathlib.Data.Int.Star
+public import Mathlib.Analysis.Calculus.MeanValue
 
 section polygonal_line
 
@@ -40,10 +41,56 @@ structure PolygonalLine (U : Set E) (a b : E) where
   segments : ∀ i : Fin (n + 1), ∀ t ∈ Icc (0 : ℝ) 1,
            (1 - t) • vertice i.castSucc + t • vertice i.succ ∈ U
 
+theorem test {a b} (l : PolygonalLine U a b) (i : Fin (l.n + 1)) :
+  MapsTo (AffineMap.lineMap (l.vertice i.castSucc) (l.vertice i.succ))
+    (Icc 0 1 : Set ℝ) U := by
+    simp[AffineMap.lineMap, MapsTo, - Set.mem_Icc]
+    intro t ht
+    convert l.segments i t ht using 1
+    rw[smul_sub, sub_smul]
+    grind [one_smul]
+
+
+
 def PolygonalLine.toNat_vertices {a b : E} (l : PolygonalLine U a b) (i : ℕ) : E :=
   if h : i < l.n + 2 then l.vertice ⟨i, h⟩ else b
 
---/lemma PolygonalLine.ver_mem :  := -/
+
+theorem test2 {a b} (l : PolygonalLine U a b) (i : ℕ) (hi : i < l.n + 1) :
+  MapsTo (AffineMap.lineMap (l.toNat_vertices i) (l.toNat_vertices (i + 1)))
+    (Icc 0 1 : Set ℝ) U := by
+  unfold MapsTo
+  have hi1: i < l.n +2 := by
+    grind
+  simp [PolygonalLine.toNat_vertices, hi1, hi, - Set.mem_Icc]
+  --simp [AffineMap.lineMap]
+  intro t ht
+  apply test l ⟨i, hi⟩ ht
+
+
+
+
+lemma toNat_eq_vertice1 {a b : E} (l : PolygonalLine U a b): l.toNat_vertices 0 = a := by
+  have h : 0 < l.n + 2 := by
+    grind
+  unfold PolygonalLine.toNat_vertices
+  simp [h, l.source]
+
+lemma toNat_eq_vertice2 {a b : E} (l : PolygonalLine U a b): l.toNat_vertices (l.n + 1) = b := by
+  have h : l.n + 1 < l.n + 2 := by
+    grind
+  unfold PolygonalLine.toNat_vertices
+  simp [h]
+  apply l.target
+
+lemma PolygonalLine.ver_mem (p : PolygonalLine U a b) (i : Fin (p.n + 2)) :
+    p.vertice i ∈ U := by
+  rcases Fin.eq_castSucc_or_eq_last i with ⟨h1, h⟩ | h2
+  convert (p.segments h1 0)
+  simp [h]
+  convert (p.segments (Fin.last (p.n)) 1)
+  simp [h2]
+
 
 -- /--A path is piecewise affine if it can be divided into pieces of affine maps.-/
 -- structure IsPiecewiseAffine {a b : E} (ϕ : Path a b) : Prop where
@@ -54,20 +101,16 @@ def PolygonalLine.toNat_vertices {a b : E} (l : PolygonalLine U a b) (i : ℕ) :
 -- structure PolygonalLine (a b : E) extends Path a b where
 --   piecewise_affine : IsPiecewiseAffine toPath
 
+theorem nonempty_polygonalLine {U : Set E} (hU : IsConnected U) (a b : E) :
+    Nonempty (PolygonalLine U a b) := by
+  sorry
+
 def PolygonalLine.length {a b : E} (ϕ : PolygonalLine U a b) : ℝ :=
   ∑ i ∈ Set.Icc 1 (Fin.last (ϕ.n + 1)), dist (ϕ.vertice i) (ϕ.vertice (i - 1))
 
 theorem PolygonalLine.length_toNat_vertices {a b : E} (ϕ : PolygonalLine U a b) :
-    ϕ.length = ∑ i ∈ Finset.range (ϕ.n + 1), dist (ϕ.toNat_vertices i) (ϕ.toNat_vertices (i - 1)) := by
+    ϕ.length = ∑ i ∈ Finset.range (ϕ.n + 1), dist (ϕ.toNat_vertices i) (ϕ.toNat_vertices (i + 1)) := by
   sorry
-
--- /--A polygonal line behaves like a path, which is a function from the unit interval to the vector space E.-/
--- instance : FunLike (PolygonalLine U a b)  I  E where
---   coe := fun ϕ ↦ ϕ.toPath.toFun
---   coe_injective' ϕ₁ ϕ₂ h := by
---     dsimp at h; ext x
---     simp only [DFunLike.coe_fn_eq] at h
---     cases ϕ₁; cases ϕ₂; congr
 
 lemma PolygonalLine.zero_le_length {a b : E} (ϕ : PolygonalLine U a b) : 0 ≤ ϕ.length := by
   unfold length
@@ -163,7 +206,14 @@ noncomputable instance {U : Set E} (hU : IsConnected U) (hU' : IsOpen U) : Metri
 #check IsConnected.isPreconnected
 #check connectedSpace_iff_clopen
 
--- /--The trivial path from x to itself is a polygonal line.-/
+/--The trivial path from x to itself is a polygonal line.-/
+def constantPolygonalLine (x : E) (hu : x ∈ U) : PolygonalLine U x x where
+  n := 0
+  vertice := fun _ ↦ x
+  source := rfl
+  target := rfl
+  segments := by intros; rw [← add_smul]; simpa
+
 -- def constantPolygonalLine (x : E) : PolygonalLine x x where
 --   toFun := fun _ ↦ x
 --   source' := rfl
@@ -173,7 +223,21 @@ noncomputable instance {U : Set E} (hU : IsConnected U) (hU' : IsOpen U) : Metri
 --     refine ⟨rfl, rfl, ?_⟩
 --     use fun _ ↦ AffineMap.const ℝ ℝ x; intros; dsimp
 
--- /--The segment connecting x and y is a polygonal line.-/
+/--The segment connecting x and y is a polygonal line.-/
+def lineSegment (x y : E) (hu : segment ℝ x y ⊆ U) : PolygonalLine U x y where
+  n := 0
+  vertice := Fin.cases x (fun _ ↦ y)
+  source := rfl
+  target := rfl
+  segments := by
+    intro i t trange; rcases i with ⟨i, ieq0⟩
+    have : i = 0 := Nat.lt_one_iff.mp ieq0
+    simp [this]
+    rw [← Fin.succ_zero_eq_one, Fin.cases_succ]
+    apply hu
+    simp [segment]
+    exact ⟨1 - t, by simp [trange.2], t, trange.1, by norm_num, rfl⟩
+
 -- def lineSegment (x y : E) : PolygonalLine x y where
 --   toFun := fun ⟨t, _⟩ ↦ t • y + (1 - t) • x
 --   source' := by simp
@@ -289,45 +353,65 @@ noncomputable section
 --   target' := by norm_num
 --   piecewise_affine := piecewise_affine_trans φ.piecewise_affine φ'.piecewise_affine
 
+@[simp]
+def glued_append {m n : ℕ} (f : Fin (n + 2) → E) (g : Fin (m + 2) → E):
+    Fin (n + m + 2 + 1) → E := by
+  intro i
+  by_cases! hi : i.1 ≤ n + 1
+  exact (f ⟨i.1, Nat.lt_succ_of_le hi⟩)
+  exact (g ⟨i.1 - (n + 1), by omega⟩)
+
 @[trans]
-def PolygonalLine.trans {x y z : E} (φ : PolygonalLine U x y) (φ' : PolygonalLine U y z) : PolygonalLine U x z where
-  n := sorry
-  vertice := sorry
-  source := sorry
-  target := sorry
-  segments := sorry
+def PolygonalLine.trans {x y z : E} (p : PolygonalLine U x y) (p' : PolygonalLine U y z) : PolygonalLine U x z where
+  n := p.n + p'.n + 1
+  vertice := glued_append p.vertice p'.vertice
+  source := by simp; exact p.source
+  target := by simp; convert p'.target using 1; congr; rw [add_assoc]; apply (Nat.add_sub_cancel_left)
+  segments := by
+    intro i t trange
+    dsimp; split_ifs with h1 h2 h2
+    · refine (p.segments ⟨i, ?_⟩ t trange)
+      omega
+    · push Not at h2
+      have : p.n + 1 = i := le_antisymm (Nat.le_of_lt_succ h2) h1
+      simp [this]; simp [← this]
+      show (1 - t) • p.vertice (Fin.last (p.n + 1)) + t • p'.vertice 1 ∈ U
+      simp [p.target, ← p'.source]
+      exact (p'.segments 0 t trange)
+    · linarith
+    push Not at h1 h2
+    convert (p'.segments ⟨i - (p.n + 1), _⟩ t trange)
+    dsimp; omega
+    omega
 
 end
 
-/--The head-to-tail composition of two polygonal lines contained in a subset is still contained in that subset.-/
-lemma polygonal_line_trans_subset {x y z : E} {U : Set E} {φ : PolygonalLine x y} {φ' : PolygonalLine y z} (hφ : Set.range ↑φ ⊆ U) (hφ' : Set.range ↑φ' ⊆ U) :
-  Set.range ↑(φ.trans φ') ⊆ U := by
-      rintro w ⟨t, h⟩; simp [PolygonalLine.trans] at h
-      change (ite _ _ _) = w at h; split_ifs at h with range_t
-      · rw [← h]
-        have : φ.extend (2 * ↑t) ∈ range ↑φ := ⟨⟨2 * ↑t, ⟨by linarith [t.2.1], by linarith⟩⟩, by rw [φ.extend_apply ⟨by linarith [t.2.1], by linarith⟩]; rfl⟩
-        exact hφ this
-      rw [← h]
-      have : φ'.extend (2 * ↑t - 1) ∈ range ↑φ' := ⟨⟨2 * ↑t - 1, ⟨by linarith, by linarith [t.2.2]⟩⟩, by rw [φ'.extend_apply ⟨by linarith, by linarith [t.2.2]⟩]; rfl⟩
-      exact hφ' this
+-- /--The head-to-tail composition of two polygonal lines contained in a subset is still contained in that subset.-/
+-- lemma polygonal_line_trans_subset {x y z : E} {U : Set E} {φ : PolygonalLine x y} {φ' : PolygonalLine y z} (hφ : Set.range ↑φ ⊆ U) (hφ' : Set.range ↑φ' ⊆ U) :
+--   Set.range ↑(φ.trans φ') ⊆ U := by
+--       rintro w ⟨t, h⟩; simp [PolygonalLine.trans] at h
+--       change (ite _ _ _) = w at h; split_ifs at h with range_t
+--       · rw [← h]
+--         have : φ.extend (2 * ↑t) ∈ range ↑φ := ⟨⟨2 * ↑t, ⟨by linarith [t.2.1], by linarith⟩⟩, by rw [φ.extend_apply ⟨by linarith [t.2.1], by linarith⟩]; rfl⟩
+--         exact hφ this
+--       rw [← h]
+--       have : φ'.extend (2 * ↑t - 1) ∈ range ↑φ' := ⟨⟨2 * ↑t - 1, ⟨by linarith, by linarith [t.2.2]⟩⟩, by rw [φ'.extend_apply ⟨by linarith, by linarith [t.2.2]⟩]; rfl⟩
+--       exact hφ' this
 
 /--A subset of a normed vector space is connected by polygonal lines if it is connected.-/
 lemma polygonal_connected_of_connected (U : Set E) (Uopen : IsOpen U)  :
-  IsConnected U → ∀ x y : E, x ∈ U → y ∈ U → ∃ ϕ : PolygonalLine x y, Set.range ϕ ⊆ U := by
-  intro Uconnected x y xu yu
+    IsConnected U → ∀ x y : E, x ∈ U ∧ y ∈ U → Nonempty (PolygonalLine U x y) := by
+  intro Uconnected x y ⟨xu, yu⟩
   have Uconnected : ConnectedSpace U := by
     rw [isConnected_iff_connectedSpace] at Uconnected
     exact Uconnected
-  set V : Set E := {u ∈ U | ∃ l : PolygonalLine x u, Set.range l ⊆ U} with V_def
+  set V : Set E := {u | Nonempty (PolygonalLine U x u)} with V_def
   set V' : Set U := Subtype.val ⁻¹' V with V'_def
   have V'_eq_V : ∀ x : U, x.1 ∈ V ↔ x ∈ V' := by simp [V'_def]
   have : x ∈ V := by
     simp [V_def]
-    constructor; exact xu
-    use constantPolygonalLine x
-    dsimp [constantPolygonalLine, Set.range]
-    rintro a ⟨_, h⟩;
-    change x = a at h; rwa [← h]
+    constructor
+    exact constantPolygonalLine x xu
   -- have Vnonempty : Nonempty V := by simp; use x
   have V'nonempty : V' ≠ ∅ := by
     rw [V'_eq_V ⟨x, xu⟩] at this
@@ -341,47 +425,45 @@ lemma polygonal_connected_of_connected (U : Set E) (Uopen : IsOpen U)  :
         rintro v vv
         apply (V'_eq_V v).mpr; assumption
       apply (V'_eq_V ⟨a, au⟩).mp
-      rw [V_def]; dsimp; constructor; exact au
+      rw [V_def]; dsimp; constructor
       have ball : ∃ ε > 0, Metric.ball a ε ⊆ U := Metric.isOpen_iff.mp Uopen a au
-      rcases ball with ⟨ε, ⟨εpos, ball⟩⟩
-      have : ((Metric.ball a ε) ∩ V).Nonempty := mem_closure_iff.mp aV (Metric.ball a ε) Metric.isOpen_ball (Metric.mem_ball_self εpos)
-      rw [Set.nonempty_def] at this
-      rcases this with ⟨b, ⟨binball, bV⟩⟩
-      have polygonalpath₁ : ∃ ϕ₁ : PolygonalLine x b, Set.range ϕ₁ ⊆ U := by rw [V_def] at bV; dsimp at bV; exact bV.2
-      have polygonalpath₂ : ∃ ϕ₂ : PolygonalLine b a, Set.range ϕ₂ ⊆ U := by
-        use lineSegment b a
-        rw [segment_range_eq_segment b a]
-        apply subset_trans (convex_iff_segment_subset.mp (convex_ball a ε) binball (Metric.mem_ball_self εpos)) ball
-      rcases polygonalpath₁ with ⟨ϕ₁, hϕ₁⟩
-      rcases polygonalpath₂ with ⟨ϕ₂, hϕ₂⟩
-      use ϕ₁.trans ϕ₂
-      exact polygonal_line_trans_subset hϕ₁ hϕ₂
+      have : Nonempty (PolygonalLine U x a) := by
+        rcases ball with ⟨ε, ⟨εpos, ball⟩⟩
+        have : ((Metric.ball a ε) ∩ V).Nonempty := mem_closure_iff.mp aV (Metric.ball a ε) Metric.isOpen_ball (Metric.mem_ball_self εpos)
+        rw [Set.nonempty_def] at this
+        rcases this with ⟨b, ⟨binball, bV⟩⟩
+        have ϕ₁ : PolygonalLine U x b := by rw [V_def] at bV; dsimp at bV; exact Classical.choice bV
+        have ϕ₂ : PolygonalLine U b a := by
+          refine (lineSegment b a) ?_
+          apply subset_trans (convex_iff_segment_subset.mp (convex_ball a ε) binball (Metric.mem_ball_self εpos)) ball
+        exact ⟨ϕ₁.trans ϕ₂⟩
+      apply Classical.choice this
     apply IsOpen.preimage continuous_subtype_val
     apply Metric.isOpen_iff.mpr
     rintro a aV
     rw [V_def] at aV
-    rcases aV with ⟨aU, ⟨ϕ₁, hϕ₁⟩⟩
-    have : ∃ ε > 0, Metric.ball a ε ⊆ U := Metric.isOpen_iff.mp Uopen a aU
+    have ϕ : PolygonalLine U x a := Classical.choice aV
+    have : ∃ ε > 0, Metric.ball a ε ⊆ U := by
+      refine Metric.isOpen_iff.mp Uopen a ?_
+      rw [← ϕ.target]; apply ϕ.ver_mem
     rcases this with ⟨ε, ⟨εpos, ballinU⟩⟩
     use ε, εpos; rintro b binball; rw [V_def]
-    use ballinU binball
-    have : Set.range ↑(lineSegment a b) ⊆ Metric.ball a ε := by
-      rw [segment_range_eq_segment]
+    have : segment ℝ a b ⊆ Metric.ball a ε := by
       apply convex_iff_segment_subset.mp (convex_ball _ _) (Metric.mem_ball_self _) binball
       exact εpos
-    have hϕ₂ : range ↑(lineSegment a b) ⊆ U := by intros x h; apply ballinU; apply this; apply h
-    use ϕ₁.trans (lineSegment a b)
-    exact polygonal_line_trans_subset hϕ₁ hϕ₂
+    have hϕ₂ : segment ℝ a b ⊆ U := by intros x h; apply ballinU; apply this; apply h
+    exact ⟨ϕ.trans (lineSegment a b hϕ₂)⟩
   have : V' = Set.univ := by
     rcases ((connectedSpace_iff_clopen.mp Uconnected).2 V' V'clopen)
     · contradiction
     assumption
   have : V = U := by
     ext x₀; constructor
-    · rw [V_def]; dsimp; rintro ⟨_, _⟩; assumption
+    · rw [V_def]; intro hx₀; apply Classical.choice at hx₀
+      rw [← hx₀.target]; apply hx₀.ver_mem
     intro hx₀; rw [V'_eq_V ⟨x₀, hx₀⟩, this]; trivial
   rw [← this, V_def] at yu
-  rcases yu; assumption
+  exact yu
 
 -- #check Convex.norm_image_sub_le_of_norm_hasFDerivWithin_le
 
@@ -398,7 +480,64 @@ Convex.norm_image_sub_le_of_norm_hasFDerivWithin_le.{u_1, u_3, u_4} {E : Type u_
 
 variable {G : Type*} [NormedAddCommGroup G] [NormedSpace ℝ G]
 
+#check Convex.norm_image_sub_le_of_norm_hasFDerivWithin_le
+
+lemma sublength_sum_geq_distance (a : ℕ → E) :
+  ∀ n : ℕ, ‖a n - a 0‖ ≤ ∑ i ∈ Finset.range n, ‖a (i+1) - a i‖:= by
+    intro n
+    induction n with
+    | zero =>
+      simp
+    | succ k hk =>
+      calc
+        ‖a (k + 1) - a 0‖ = ‖(a (k + 1) - a k) + (a k - a 0)‖ := by
+          simp
+        _ ≤ ‖(a (k + 1) - a k)‖ + ‖(a k - a 0)‖ :=
+          norm_add_le _ _
+        _ ≤ ‖a (k + 1) - a k‖ + ∑ i ∈ Finset.range k, ‖a (i + 1) - a i‖ :=
+          add_le_add_right hk _
+        _ = ∑ i ∈ Finset.range (k + 1), ‖a (i + 1) - a i‖ := by
+          rw [Finset.sum_range_succ]; rw[add_comm]
+
+
+
 theorem norm_image_sub_le_of_norm_hasFDerivWithin_le' {f : E → G} {C : ℝ} {s : Set E} {x y : s}
     {f' : E → E →L[ℝ] G} (hf : ∀ x ∈ s, HasFDerivWithinAt f (f' x) s x) (bound : ∀ x ∈ s, ‖f' x‖ ≤ C)
     (hs : IsConnected s) (hs' : IsOpen s) : ‖f y - f x‖ ≤ C * pathDistance y x := by
-  sorry
+  simp [pathDistance]
+  have hC : 0 ≤ C := by
+    apply le_trans
+    apply norm_nonneg (f' x)
+    apply bound
+    simp
+  rw[Real.mul_iInf_of_nonneg]
+  have : Nonempty (PolygonalLine s y x) :=
+    polygonal_connected_of_connected s hs' hs y x (by grind)
+  apply le_ciInf
+  intro x_1
+  nth_rw 1 [← toNat_eq_vertice1 x_1]
+  nth_rw 2 [← toNat_eq_vertice2 x_1]
+  conv => enter [1, 1, 1]; change (f ∘ x_1.toNat_vertices) _
+  conv => enter [1, 1, 2]; change (f ∘ x_1.toNat_vertices) _
+  grw [norm_sub_rev, sublength_sum_geq_distance]
+  apply le_trans
+  apply Finset.sum_le_sum
+  intro i hi
+  simp
+  set g := (AffineMap.lineMap (x_1.toNat_vertices i) (x_1.toNat_vertices (i + 1)) : ℝ → E)
+  have segm : MapsTo g (Icc 0 1 : Set ℝ) s := by
+    unfold g
+    apply test2
+    grind
+
+  have hD : ∀ t ∈ Icc (0 : ℝ) 1,
+      HasDerivWithinAt (f ∘ g) (f' (g t) ((x_1.toNat_vertices (i + 1)) - (x_1.toNat_vertices i))) (Icc 0 1) t := fun t ht => by
+    simpa using ((hf (g t) (segm ht)).restrictScalars ℝ).comp_hasDerivWithinAt _
+      AffineMap.hasDerivWithinAt_lineMap segm
+  have bound : ∀ t ∈ Ico (0 : ℝ) 1, ‖f' (g t) ((x_1.toNat_vertices (i + 1)) - (x_1.toNat_vertices i))‖ ≤ C * ‖(x_1.toNat_vertices (i + 1)) - (x_1.toNat_vertices i)‖ := fun t ht =>
+    ContinuousLinearMap.le_of_opNorm_le _ (bound _ <| segm <| Ico_subset_Icc_self ht) _
+  simpa [g] using norm_image_sub_le_of_norm_deriv_le_segment_01' hD bound
+  rw [PolygonalLine.length_toNat_vertices]
+  simp[dist_eq_norm, norm_sub_rev]
+  rw[Finset.mul_sum]
+  exact hC
