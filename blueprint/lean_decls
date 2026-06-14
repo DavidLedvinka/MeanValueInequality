@@ -1,4 +1,7 @@
-myDef
-my_theorem1
-my_theorem2
-my_theorem3
+PolygonalLine
+PolygonalLine.trans
+polygonal_connected_of_connected
+pathDistance
+norm_image_sub_le_of_norm_hasFDerivWithin_le'
+PolygonalLine.length
+sublength_sum_geq_distance
