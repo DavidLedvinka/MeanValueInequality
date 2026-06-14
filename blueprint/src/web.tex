@@ -19,11 +19,11 @@
 \dochome{https://DavidLedvinka.github.io/MeanValueInequality/docs}
 
 \title{The Mean Value Inequality}
-\author{David Ledvinka}
+\author{David Ledvinka \and Eason Luan \and Werawis Asawapiromz \and Chandon Mandair \and Kiran Patel \and Heather McRobbie}
 
 \begin{document}
 \maketitle
-\input{content}
+%\input{content}
 
 %\begin{definition}
 %    \label{def:myDef}
@@ -67,10 +67,12 @@
 % \begin{proof}
 %   This is the proof of my theorem.
 % \end{proof}
+
+
 \begin{definition}
     \label{def:polygonalLine}
-    \leanok
     \lean{PolygonalLine}
+    \leanok
     Let $(E, \, ||\cdot||)$ be a normed vector space over $\mathbb{R}$, with subset $A \subseteq E$.
     A \emph{polygonal line} in $A$ is a sequence of $n + 2$ points $u_{0}, \dots, u_{n+1}$ in $E$,
     such that each line segment connecting neighbouring vertices lies completely in $A$, i.e.
@@ -82,8 +84,8 @@
 
 \begin{lemma}
     \label{lem:composition_of_polygonal_line}
-    \leanok
     \lean{PolygonalLine.trans}
+    \leanok
     \uses{def:polygonalLine}
     Let $U$ be a subset of a normed vector space.
     Given a polygonal line in U, joining $x \in U$ and $y \in U$, together with another polygonal line joining $y$ and $z \in U$,
@@ -95,7 +97,7 @@
     For the polygonal lines $a$, defined by $(x,\, a_1,\, \dots,\, a_n,\,y)$,
     and $b$, defined by $(y,\, b_1,\, \dots,\, b_m,\, z)$,
     we define the composition $a \circ b$ by the sequence $(x,\,a_1,\,\dots,\, a_n,\,y,\,b_1,\,\dots,\,b_m,\,z)$.
-    
+
     It remains to show that each segment is still contained in $U$.
     This is trivial as the first $n + 2$ vertices belong to $a$ and are all contained in $U$.
     Similarly, the last $m + 2$ vertices belong to $b$, and are all contained in $U$ as well.
@@ -103,23 +105,23 @@
 
 \begin{theorem}
     \label{thm:existence_of_polygonal_line}
-    \leanok
     \lean{polygonal_connected_of_connected}
+    \leanok
     \uses{lem:composition_of_polygonal_line}
     if $U$ is an open connected set of a normed vector space, then any two points of $U$ can be joined by a polygonal line in $U$.
 \end{theorem}
 \begin{proof}
     \leanok
     The case where $U = \emptyset$ is trivial. So we assume $U$ to be non-empty.
-    Fix a point $x \in U$, and consider the set 
+    Fix a point $x \in U$, and consider the set
     \[V \coloneqq \{u \in U \mid \exists \text{ a polygonal line connecting } x \text{ and } u.\}\]
     We want to show that $U = V$.
 
     To show that, we prove that $V$ is both closed and open in $U$ and $V$ is non-empty.
     The latter is true, as $x$ must be in $V$.
-    
+
     For closedness, we show that $V = \bar{V}$, the closure of $V$.
-    Fix a point $a \in \bar{V}$, then $\exists\, \epsilon > 0$, such that $B_{\epsilon}(a)\,\cap\,V \neq \emptyset$. 
+    Fix a point $a \in \bar{V}$, then $\exists\, \epsilon > 0$, such that $B_{\epsilon}(a)\,\cap\,V \neq \emptyset$.
     Take a point $b \in B_{\epsilon}(a)\,\cap\,V$.
     Since $b \in V$, there is a polygonal line joining $x$ and $b$.
     Since $b \in B_{\epsilon}(a)$, there is a line segment joining $b$ and $a$, which is a polygonal line as well.
@@ -139,19 +141,21 @@
 
 \begin{definition}
     \label{def:distance in U}
-    \uses{thm:existence_of_polygonal_line}
+    \lean{pathDistance}
+    \leanok
+    \uses{def:polygonalLine, def:polygonalLineLength}
     Let $U$ be an open connected set of a Banach space $E$.
     For $a, b \in U$, we define $d_U(a,b)$ to be the infimum of the lengths of the polygonal lines contained in $U$ joining $a$ and $b$.
 \end{definition}
 
 \begin{theorem}
     \label{thm:d_U is a distance}
+    \leanok
     \uses{def:distance in U}
-    \uses{lem:composition_of_polygonal_line}
-    \uses{thm:polygonal_line_length_at_least_interval_length}
     $d_U(a,b)$ is a distance in the topological space $U$.
 \end{theorem}
 \begin{proof}
+    \uses{thm:existence_of_polygonal_line, lem:composition_of_polygonal_line, thm:polygonal_line_length_at_least_interval_length, def:polygonalLineLength}
     Let $\varphi$ be an arbitrary polygonal line joining $a$ to $b$ in $U$,
     defined by the sequence $a_0,\, \dots,\, a_{n + 1}$, with $a_0 = a$ and $a_{n + 1} = b$
 
@@ -163,7 +167,7 @@
     which implies $a = b$.
 
     \textit{Symmetry}:
-    For any polygonal line $\varphi$ from $a$ to $b$ in $U$, 
+    For any polygonal line $\varphi$ from $a$ to $b$ in $U$,
     the reverse line $\psi$ defined by $a_{n+1},\, \dots,\, a_0$ is a polygonal line from $b$ to $a$.
     $\text{Length}(\psi) = \sum_{i=0}^{n}||a_i - a_{i + 1}|| = \sum_{i=0}^{n}||a_{i+1} - a_i|| = \text{Length}(\varphi)$,
     so the set of lengths of polygonal lines from $a$ to $b$ and from $b$ to $a$ are equivalent and therefore $d_U(a,b) = d_U(b,a)$.
@@ -185,10 +189,9 @@
 
 \begin{theorem}
     \label{thm:mean value theorem in connected open set}
-    \uses{def:distance in U}
-    \uses{thm:existence_of_polygonal_line}
-    \leanok
     \lean{norm_image_sub_le_of_norm_hasFDerivWithin_le'}
+    \leanok
+    \uses{def:distance in U}
     Let $U$ be a connected open set of a Banach space $E$.
     Let $f: U \rightarrow F$ be a differentiable mapping with values in a Banach space $F$.
     Assume that
@@ -198,6 +201,8 @@
     then for any $x_1,x_2 \in U$, $||f(x_1)-f(x_2)|| \leq k \cdot d_U(x_1,x_2)$.
 \end{theorem}
 \begin{proof}
+    \leanok
+    \uses{thm:existence_of_polygonal_line, lemma:norm_sum_at_least_sum_norm, def:intervalLength, def:polygonalLineLength}
     Let $x_1,x_2 \in U$ and $l$ a polygonal line contained in $U$ joining $x_1$ and $x_2$.
     Suppose $l$ is defined by $n + 1$ vertices $a_0,\, \dots,\, a_{n+1}$,
     where $a_0=x_1, a_{n+1} = x_2$ and $a_i \in U$.
@@ -223,8 +228,9 @@
 
 \begin{definition}
     \label{def:polygonalLineLength}
-    \uses{def:polygonalLine}
-    \uses{def:intervalLength}
+    \lean{PolygonalLine.length}
+    \leanok
+    \uses{def:polygonalLine, def:intervalLength}
     Given a polygonal line $\varphi$ defined by $(a_0,\, \dots,\, a_{n+1})$, with some fixed $n \geq 0$
     the \emph{length of the polygonal line} $\varphi$ is the sum of the lengths of the intervals from which it is formed:
     \[
@@ -234,9 +240,12 @@
 
 \begin{lemma}
     \label{lemma:norm_sum_at_least_sum_norm}
+    \lean{sublength_sum_geq_distance}
+    \leanok
     Given a sequence $(a_i)_{i=0}^{n}$ with $a_i \in E$ for some $n \geq 1$, $\sum_{i=0}^{n-1}||a_{i+1} - a_i|| \geq ||a_n - a_0||$
 \end{lemma}
 \begin{proof}
+    \leanok
     \begin{itemize}
         \item \textbf{Base Case ($n=1$):}
         For $n=1$, we need $||a_1 - a_0|| \geq ||a_1 - a_0||$ which follows immediately by reflexivity.
@@ -263,9 +272,7 @@
 
 \begin{theorem}
     \label{thm:polygonal_line_length_at_least_interval_length}
-    % \uses{def:polygonalLineLength}
-    % \uses{def:intervalLength}
-    \uses{lemma:norm_sum_at_least_sum_norm}
+    \uses{def:polygonalLineLength, def:intervalLength}
     The length of a polygonal line $\varphi$ defined by $a_0,\, \dots,\, a_{n + 1}$ for some fixed $n \geq 0$
     between origin $a = a_0$ and end $b = a_{n+1}$ is at least equal to the length of the interval between them:
     \[
@@ -273,6 +280,7 @@
     \]
 \end{theorem}
 \begin{proof}
+    \uses{lemma:norm_sum_at_least_sum_norm}
     The result follows immediately from the lemma.
 \end{proof}
 
