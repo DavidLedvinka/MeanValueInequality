@@ -10,7 +10,7 @@
 
 \begin{definition}
     \label{def:polygonalLine}
-    \lean{PolygonalLine}
+    %\lean{PolygonalLine}
     \leanok
     Let $(E, \, ||\cdot||)$ be a normed vector space over $\mathbb{R}$, with subset $A \subseteq E$.
     A \emph{polygonal line} in $A$ is a sequence of $n + 2$ points $u_{0}, \dots, u_{n+1}$ in $E$,
@@ -23,7 +23,7 @@
 
 \begin{lemma}
     \label{lem:composition_of_polygonal_line}
-    \lean{PolygonalLine.trans}
+    %\lean{PolygonalLine.trans}
     \leanok
     \uses{def:polygonalLine}
     Let $U$ be a subset of a normed vector space.
@@ -44,7 +44,7 @@
 
 \begin{theorem}
     \label{thm:existence_of_polygonal_line}
-    \lean{polygonal_connected_of_connected}
+    %\lean{polygonal_connected_of_connected}
     \leanok
     \uses{lem:composition_of_polygonal_line}
     if $U$ is an open connected set of a normed vector space, then any two points of $U$ can be joined by a polygonal line in $U$.
@@ -80,7 +80,7 @@
 
 \begin{definition}
     \label{def:distance in U}
-    \lean{pathDistance}
+    %\lean{pathDistance}
     \leanok
     \uses{def:polygonalLine, def:polygonalLineLength}
     Let $U$ be an open connected set of a Banach space $E$.
@@ -128,7 +128,7 @@
 
 \begin{theorem}
     \label{thm:mean value theorem in connected open set}
-    \lean{norm_image_sub_le_of_norm_hasFDerivWithin_le'}
+    %\lean{norm_image_sub_le_of_norm_hasFDerivWithin_le'}
     \leanok
     \uses{def:distance in U}
     Let $U$ be a connected open set of a Banach space $E$.
@@ -167,7 +167,7 @@
 
 \begin{definition}
     \label{def:polygonalLineLength}
-    \lean{PolygonalLine.length}
+    %\lean{PolygonalLine.length}
     \leanok
     \uses{def:polygonalLine, def:intervalLength}
     Given a polygonal line $\varphi$ defined by $(a_0,\, \dots,\, a_{n+1})$, with some fixed $n \geq 0$
@@ -179,7 +179,7 @@
 
 \begin{lemma}
     \label{lemma:norm_sum_at_least_sum_norm}
-    \lean{sublength_sum_geq_distance}
+    %\lean{sublength_sum_geq_distance}
     \leanok
     Given a sequence $(a_i)_{i=0}^{n}$ with $a_i \in E$ for some $n \geq 1$, $\sum_{i=0}^{n-1}||a_{i+1} - a_i|| \geq ||a_n - a_0||$
 \end{lemma}
