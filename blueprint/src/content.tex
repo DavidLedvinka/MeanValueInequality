@@ -83,8 +83,7 @@
     %\lean{pathDistance}
     \leanok
     \uses{def:polygonalLine, def:polygonalLineLength}
-    Let $U$ be an open connected set of a Banach space $E$.
-    For $a, b \in U$, we define $d_U(a,b)$ to be the infimum of the lengths of the polygonal lines contained in $U$ joining $a$ and $b$.
+    Let $U$ be an open connected set of a Banach space $E$. For $a, b \in U$, we define $d_U(a,b)$ to be the infimum of the lengths of the polygonal lines contained in $U$ joining $a$ and $b$.
 \end{definition}
 
 \begin{theorem}
@@ -141,7 +140,7 @@
 \end{theorem}
 \begin{proof}
     \leanok
-    \uses{thm:existence_of_polygonal_line, lemma:norm_sum_at_least_sum_norm, def:intervalLength, def:polygonalLineLength}
+    \uses{thm:existence_of_polygonal_line, lemma:norm_sum_at_least_sum_norm, def:intervalLength, def:polygonalLineLength, thm:polygonal_line_length_at_least_interval_length}
     Let $x_1,x_2 \in U$ and $l$ a polygonal line contained in $U$ joining $x_1$ and $x_2$.
     Suppose $l$ is defined by $n + 1$ vertices $a_0,\, \dots,\, a_{n+1}$,
     where $a_0=x_1, a_{n+1} = x_2$ and $a_i \in U$.
