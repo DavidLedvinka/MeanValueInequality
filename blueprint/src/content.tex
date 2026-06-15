@@ -160,6 +160,7 @@
 
 \begin{definition}
     \label{def:intervalLength}
+    \leanok
     Let $(E, ||\cdot||)$ be a normed vector space over $\mathbb{R}$.
     The \emph{length of an interval} with origin $a \in E$ and end $b \in E$ is $d(a,b) := ||b - a||$.
 \end{definition}
@@ -210,6 +211,8 @@
 
 \begin{theorem}
     \label{thm:polygonal_line_length_at_least_interval_length}
+    \leanok
+    % \lean{PolygonalLine.dist_le_length}
     \uses{def:polygonalLineLength, def:intervalLength}
     The length of a polygonal line $\varphi$ defined by $a_0,\, \dots,\, a_{n + 1}$ for some fixed $n \geq 0$
     between origin $a = a_0$ and end $b = a_{n+1}$ is at least equal to the length of the interval between them:
@@ -218,6 +221,7 @@
     \]
 \end{theorem}
 \begin{proof}
+    \leanok
     \uses{lemma:norm_sum_at_least_sum_norm}
     The result follows immediately from the lemma.
 \end{proof}
